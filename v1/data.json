@@ -1,4 +1,23 @@
-[
-  { "Ano": 2024, "UF": "DF", "Titulo": "Exemplo 1", "Link": "https://google.com.br" },
-  { "Ano": 2023, "UF": "SP", "Titulo": "Exemplo 2", "Link": "https://www.gov.br" }
-]
+{
+  "theme": "teste",
+  "generatedAt": "2025-08-26T15:00:00Z",
+  "cgu": [
+    {
+      "Título": "Relatório de Avaliação nº 815319",
+      "Data": "2024-01-04",
+      "Município": "Florianópolis - SC",
+      "Unidade Auditada": "Ministério da Saúde",
+      "Órgão": "MS",
+      "Tipo de Serviço": "Apuração",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1541439"
+    }
+  ],
+  "tcu": [
+    {
+      "Título": "ACÓRDÃO 3267/2025 - Plenário",
+      "Ano": 2025,
+      "Assunto": "Tomada de Contas Especial…",
+      "Endereço": "https://contas.tcu.gov.br/sagas/…"
+    }
+  ]
+}
