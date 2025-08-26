@@ -1,61 +1,132 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard CGU/TCU</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://unpkg.com/tabulator-tables@5.6.1/dist/css/tabulator_tailwind.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/tabulator-tables@5.6.1/dist/js/tabulator.min.js"></script>
+
+  <style>
+    /* Regras para legibilidade e evitar “quebra de letras” */
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: .60rem .7rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    th { font-weight: 600; color: #374151; background:#f9fafb; }
+    td { white-space: normal; word-break: normal; overflow-wrap: anywhere; }
+    .card { background:#fff; border-radius: .75rem; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+    .title { font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; }
+    .muted { color:#6b7280 }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-6">
-  <div class="max-w-6xl mx-auto space-y-6">
-    <h1 class="text-2xl font-bold">Dashboard CGU/TCU</h1>
-    <p id="meta" class="text-sm text-gray-500"></p>
-    <div class="grid md:grid-cols-2 gap-6">
-      <div>
-        <h2 class="font-semibold mb-2">CGU (Top 10)</h2>
-        <div id="cgu"></div>
+<body class="bg-gray-50 text-gray-800">
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <header class="mb-6">
+      <h1 class="title">Dashboard CGU/TCU</h1>
+      <p class="muted text-sm mt-1">
+        Tema: <span id="theme">—</span> · Gerado em: <span id="genAt">—</span>
+      </p>
+    </header>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- CGU -->
+      <div class="card p-4">
+        <h2 class="font-semibold text-lg mb-3">CGU (Top 10)</h2>
+        <div class="overflow-x-auto">
+          <table id="tbl-cgu">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Data</th>
+                <th>Município</th>
+                <th>Unidade Auditada</th>
+                <th>Órgão</th>
+                <th>Tipo de Serviço</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-      <div>
-        <h2 class="font-semibold mb-2">TCU (Top 10)</h2>
-        <div id="tcu"></div>
+
+      <!-- TCU -->
+      <div class="card p-4">
+        <h2 class="font-semibold text-lg mb-3">TCU (Top 10)</h2>
+        <div class="overflow-x-auto">
+          <table id="tbl-tcu">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Ano</th>
+                <th>Assunto</th>
+                <th>Endereço</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-<script>
-function q(k){return new URLSearchParams(location.search).get(k)||'';}
-async function main(){
-  const dataUrl = q('data'); if(!dataUrl){document.body.innerHTML='Faltou ?data=...';return;}
-  const r = await fetch(dataUrl, {cache:'no-store'}); const payload = await r.json();
-  document.getElementById('meta').textContent =
-    `Tema: ${payload.tema} · Gerado em: ${new Date(payload.generated_at).toLocaleString('pt-BR')}`;
+  <script>
+    // Lê ?data=<url> ou usa ./data.json no mesmo diretório
+    const u = new URL(location.href);
+    const dataUrl = u.searchParams.get('data') || './data.json';
 
-  new Tabulator("#cgu", {
-    data: payload.cgu, layout:"fitColumns", height: "460px",
-    columns: [
-      {title:"Título", field:"Título", widthGrow:3},
-      {title:"Data", field:"Data", width:110},
-      {title:"Município", field:"Município", widthGrow:1},
-      {title:"Unidade Auditada", field:"Unidade Auditada", widthGrow:1},
-      {title:"Órgão", field:"Órgão", width:70},
-      {title:"Tipo de Serviço", field:"Tipo de Serviço", width:130},
-      {title:"Link", field:"Link", formatter:(c)=>c.getValue()?`<a class="text-blue-600" target="_blank" href="${c.getValue()}">Abrir</a>`:'' , width:70}
-    ]
-  });
+    fetch(dataUrl)
+      .then(r => r.json())
+      .then(data => render(data))
+      .catch(err => {
+        document.getElementById('theme').textContent = 'Erro ao carregar';
+        console.error('Erro carregando JSON:', err);
+      });
 
-  new Tabulator("#tcu", {
-    data: payload.tcu, layout:"fitColumns", height: "460px",
-    columns: [
-      {title:"Título", field:"Título", widthGrow:3},
-      {title:"Ano", field:"Ano", width:80, hozAlign:"center"},
-      {title:"Assunto", field:"Assunto", widthGrow:2},
-      {title:"Endereço", field:"Endereço", formatter:(c)=>c.getValue()?`<a class="text-blue-600" target="_blank" href="${c.getValue()}">Abrir</a>`:'' , width:70}
-    ]
-  });
-}
-main();
-</script>
+    function render(d) {
+      // Header
+      document.getElementById('theme').textContent = d.theme ?? '—';
+      const dt = d.generatedAt ? new Date(d.generatedAt) : null;
+      document.getElementById('genAt').textContent = dt && !isNaN(dt) 
+        ? dt.toLocaleString('pt-BR') 
+        : '—';
+
+      // Helpers
+      const cgu = Array.isArray(d.cgu) ? d.cgu.slice(0, 10) : [];
+      const tcu = Array.isArray(d.tcu) ? d.tcu.slice(0, 10) : [];
+
+      // Monta CGU
+      const cguTbody = document.querySelector('#tbl-cgu tbody');
+      cguTbody.innerHTML = cgu.map(i => tr([
+        safe(i['Título']),
+        safe(i['Data']),
+        safe(i['Município']),
+        safe(i['Unidade Auditada']),
+        safe(i['Órgão']),
+        safe(i['Tipo de Serviço']),
+        link(i['Link'])
+      ])).join('');
+
+      // Monta TCU
+      const tcuTbody = document.querySelector('#tbl-tcu tbody');
+      tcuTbody.innerHTML = tcu.map(i => tr([
+        safe(i['Título']),
+        safe(i['Ano']),
+        safe(i['Assunto']),
+        link(i['Endereço'])
+      ])).join('');
+    }
+
+    // Utilitários de célula
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    const safe = v => esc(v);
+    const link = url => {
+      const u = (url || '').toString().trim();
+      if (!u) return '';
+      return `<a href="${esc(u)}" target="_blank" class="text-indigo-600 hover:underline">Abrir</a>`;
+    }
+    const td = html => `<td>${html}</td>`;
+    const tr = cells => `<tr>${cells.map(td).join('')}</tr>`;
+  </script>
 </body>
 </html>
