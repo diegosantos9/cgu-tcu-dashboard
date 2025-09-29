@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box} body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px} #resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.filters label{font-weight:600;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.section h2{margin:0 0 10px;color:var(--pri)} .table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1} tbody tr:nth-child(even){background:#fafbfc} tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap} a.link:hover{text-decoration:underline}
+.no-results{padding:18px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SEED: JSON do workflow -->
+<script id="seed" type="application/json">{
+  "resumo": "Exibindo os itens mais relevantes por fonte para \"saude digital\".",
+  "cgu_tabela": [
+    {
+      "Título": "Relatório de Apuração nº 1521825 - Auditoria em contratação de Raio X fixo digital - Secretaria de Estado da Saúde do Tocantins (SESAU/TO)",
+      "Data": "19/02/2024",
+      "UF": "TO",
+      "Unidade Auditada": "Diretoria-Executiva do Fundo Nacional de Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1530033"
+    }
+  ],
+  "tcu_tabela": []
+}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-cgu">
+        <thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-tcu">
+        <thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ===== Helpers ===== */
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+  function escapeRegExp(s){return String(s).replace(/[-\/^$*+?.()|[\]{}]/g,'\\$&');}
+  function getYearFromDateStr(s){var m=String(s||'').match(/\b(\d{4})\b/);return m?m[1]:'';}
+  function textOrEmpty(v){return (v===0? '0' : (v==null? '' : String(v)));}
+
+  // ====== Lê seed ======
+  var seed = {resumo:'', cgu_tabela:[], tcu_tabela:[]};
+  try{ seed = JSON.parse(document.getElementById('seed').textContent||'{}'); }catch(e){}
+
+  // ====== Termo pesquisado (frase + palavras) ======
+  var themeMatch=(seed.resumo||'').match(/"([^"]+)"/);
+  var SEARCH_PHRASE=themeMatch?themeMatch[1].trim():'';
+  var STOP=new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que','di','du']);
+  var TERMS=(SEARCH_PHRASE?SEARCH_PHRASE.split(/\s+/):[]).filter(function(w){return w && w.length>=2 && !STOP.has(norm(w));});
+
+  // ====== Regex acento-insensitive ======
+  var DIA = {
+    'a':'[aàáâãä]', 'e':'[eèéêë]', 'i':'[iìíîï]', 'o':'[oòóôõö]', 'u':'[uùúûü]',
+    'c':'[cç]', 'n':'[nñ]'
+  };
+  function diacriticPart(s){
+    return s.split('').map(function(ch){
+      var lc = ch.toLowerCase();
+      if (DIA[lc]) return DIA[lc];
+      if (/\s/.test(ch)) return '\\s+';
+      return escapeRegExp(ch);
+    }).join('');
+  }
+  function buildSearchRegex(){
+    var parts=[];
+    if (SEARCH_PHRASE) parts.push(diacriticPart(SEARCH_PHRASE));
+    TERMS.forEach(function(t){ parts.push(diacriticPart(t)); });
+    if (!parts.length) return null;
+    return new RegExp('(?:^|\\b)(' + parts.join('|') + ')(?=\\b|$)','gi');
+  }
+  var SEARCH_RE = buildSearchRegex();
+
+  function highlightBold(txt){
+    var s = textOrEmpty(txt);
+    if (!SEARCH_RE) return s;
+    return s.replace(SEARCH_RE, function(m){ return '<b class="hl">'+m+'</b>'; });
+  }
+
+  // ====== Título/Resumo da página ======
+  document.title='Painel de '+(SEARCH_PHRASE?SEARCH_PHRASE:'Auditoria');
+  document.getElementById('titulo').textContent=document.title;
+  document.getElementById('resumo').textContent=textOrEmpty(seed.resumo);
+
+  // ====== Mapeia CGU/TCU (uso literal do seed) ======
+  var CGU=(seed.cgu_tabela||[]).map(function(x){
+    return {
+      _src:'CGU',
+      Titulo: textOrEmpty(x['Título']),
+      Data:   textOrEmpty(x['Data']),
+      UF:     (x.hasOwnProperty('UF') ? x['UF'] : ''),
+      Unidade:textOrEmpty(x['Unidade Auditada']),
+      Orgao:  textOrEmpty(x['Órgão']||'CGU'),
+      Tipo:   textOrEmpty(x['Tipo de Serviço']),
+      Link:   textOrEmpty(x['Link'])
+    };
+  });
+
+  var TCU=(seed.tcu_tabela||[]).map(function(x){
+    return {
+      _src:'TCU',
+      Ano:     textOrEmpty(x['Ano']),
+      Assunto: textOrEmpty(x['Assunto']),
+      Link:    (x.hasOwnProperty('Link') ? x['Link'] : ''),
+      Orgao:   textOrEmpty(x['Órgão']||'TCU')
+    };
+  }).sort(function(a,b){return (parseInt(b.Ano||0,10)||0)-(parseInt(a.Ano||0,10)||0);});
+
+  // Totais
+  document.getElementById('cgu-tot').textContent=CGU.length;
+  document.getElementById('tcu-tot').textContent=TCU.length;
+
+  // Filtros
+  var fTxt=document.getElementById('f-texto');
+  var fAno=document.getElementById('f-ano');
+  var fUF=document.getElementById('f-uf');
+  var fOrg=document.getElementById('f-orgao');
+
+  var yearSet={}; CGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(y) yearSet[y]=true;});
+  TCU.forEach(function(r){var y=textOrEmpty(r.Ano); if(y) yearSet[y]=true;});
+  Object.keys(yearSet).sort(function(a,b){return b-a;}).forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;fAno.appendChild(o);});
+
+  var ufSet={}; CGU.forEach(function(r){var u=(r.UF!=null && r.UF!=='N/A')?String(r.UF):''; if(u) ufSet[u]=true;});
+  Object.keys(ufSet).sort().forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=u;fUF.appendChild(o);});
+
+  var cguBody=document.querySelector('#tbl-cgu tbody');
+  var tcuBody=document.querySelector('#tbl-tcu tbody');
+
+  function renderTables(rowsCGU,rowsTCU){
+    // CGU
+    cguBody.innerHTML='';
+    if(!rowsCGU.length){
+      var tr=document.createElement('tr');var td=document.createElement('td');
+      td.colSpan=6;td.className='no-results';td.textContent='Nenhum registro para exibir.';tr.appendChild(td);cguBody.appendChild(tr);
+    }else{
+      rowsCGU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+highlightBold(r.Titulo)+'</td><td>'+r.Data+'</td><td>'+r.UF+'</td><td>'+r.Unidade+'</td><td>'+r.Tipo+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        cguBody.appendChild(tr);
+      });
+    }
+    // TCU
+    tcuBody.innerHTML='';
+    if(!rowsTCU.length){
+      var tr2=document.createElement('tr');var td2=document.createElement('td');
+      td2.colSpan=3;td2.className='no-results';td2.textContent='Nenhum registro para exibir.';tr2.appendChild(td2);tcuBody.appendChild(tr2);
+    }else{
+      rowsTCU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.Ano+'</td><td>'+highlightBold(r.Assunto)+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        tcuBody.appendChild(tr);
+      });
+    }
+  }
+
+  // Gráficos
+  var bar=document.getElementById('bar'), pie=document.getElementById('pie');
+  var barLegend=document.getElementById('bar-legend'), pieLegend=document.getElementById('pie-legend');
+
+  function drawBar(rowsCGU,rowsTCU){
+    var ctx=bar.getContext('2d'); ctx.clearRect(0,0,bar.width,bar.height); barLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].CGU++;});
+    rowsTCU.forEach(function(r){var y=r.Ano; if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].TCU++;});
+    var labels=Object.keys(agg).sort(function(a,b){return a-b;});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',bar.width/2,bar.height/2);return;}
+    var pad={t:20,r:16,b:40,l:28}, w=bar.width-pad.l-pad.r, h=bar.height-pad.t-pad.b, max=1;
+    labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});
+    ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();
+    ctx.fillStyle='#555';ctx.textAlign='right';
+    for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}
+    var groupW=w/labels.length, barW=Math.max(8,groupW*0.35);
+    var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu')||'#0a9396';
+    var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu')||'#94d2bd';
+    labels.forEach(function(y,i){
+      var x=pad.l+i*groupW+groupW/2;
+      var hCGU=(agg[y].CGU/max)*h, hTCU=(agg[y].TCU/max)*h;
+      ctx.fillStyle=String(cguColor).trim(); ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);
+      ctx.fillStyle=String(tcuColor).trim(); ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);
+      ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);
+    });
+    function leg(color,text){var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+color+'"></span>'+text;barLegend.appendChild(d);}
+    leg(String(cguColor).trim(),'CGU'); leg(String(tcuColor).trim(),'TCU');
+  }
+
+  function drawPie(rowsCGU){
+    var ctx=pie.getContext('2d'); ctx.clearRect(0,0,pie.width,pie.height); pieLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var u=r.UF||'N/A'; agg[u]=(agg[u]||0)+1;});
+    var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',pie.width/2,pie.height/2);return;}
+    var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];
+    var total=labels.reduce(function(s,k){return s+agg[k];},0);
+    var start=-Math.PI/2, cx=pie.width/2, cy=pie.height/2, r=Math.min(cx,cy)-14;
+    labels.forEach(function(label,i){
+      var val=agg[label], ang=(val/total)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+ang); ctx.closePath(); ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+      var pct=((val/total)*100).toFixed(1)+'%';
+      var d=document.createElement('div'); d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';
+      pieLegend.appendChild(d); start+=ang;
+    });
+  }
+
+  function apply(){
+    var txt=norm(document.getElementById('f-texto').value);
+    var ano=document.getElementById('f-ano').value;
+    var uf=document.getElementById('f-uf').value;
+    var org=document.getElementById('f-orgao').value;
+
+    function passCGU(r){
+      if(org && org!=='CGU') return false;
+      if(uf && String(r.UF)!==String(uf)) return false;
+      var y=getYearFromDateStr(r.Data); if(ano && y!==ano) return false;
+      if(txt){var hay=norm([r.Titulo,r.Data,r.UF,r.Unidade,r.Orgao,r.Tipo].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+    function passTCU(r){
+      if(org && org!=='TCU') return false;
+      if(ano && String(r.Ano)!==String(ano)) return false;
+      if(txt){var hay=norm([r.Ano,r.Assunto,r.Link,r.Orgao].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+
+    var c=CGU.filter(passCGU), t=TCU.filter(passTCU);
+    document.getElementById('cgu-vis').textContent=c.length;
+    document.getElementById('tcu-vis').textContent=t.length;
+    renderTables(c,t); drawBar(c,t); drawPie(c);
+  }
+
+  // Render inicial
+  renderTables(CGU,TCU); drawBar(CGU,TCU); drawPie(CGU);
+  document.getElementById('cgu-vis').textContent=CGU.length;
+  document.getElementById('tcu-vis').textContent=TCU.length;
+  ['f-texto','f-ano','f-uf','f-orgao'].forEach(function(id){
+    var el=document.getElementById(id); el.addEventListener('input',apply); el.addEventListener('change',apply);
+  });
+})();
+</script>
+
+</body>
+</html>
