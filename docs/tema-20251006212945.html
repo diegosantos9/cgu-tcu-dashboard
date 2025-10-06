@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box} body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px} #resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.filters label{font-weight:600;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1} tbody tr:nth-child(even){background:#fafbfc} tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap} a.link:hover{text-decoration:underline}
+.no-results{padding:18px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+/* 3ª seção — melhor formatação do texto do LLM (markdown leve) */
+.achados{line-height:1.55;color:#222}
+.achados p{margin:0 0 10px}
+.achados ul{margin:0 0 10px 18px}
+.achados li{margin:3px 0}
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SEED: JSON do workflow -->
+<script id="seed" type="application/json">{
+  "resumo": "Exibindo os itens mais relevantes por fonte para \"saude indigena\".",
+  "cgu_tabela": [
+    {
+      "Título": "Relatório 1505974 - Edital do DSEI Interior Sul (SC) para locação de veículos utilizados na saúde indígena",
+      "Data": "10/06/2024",
+      "UF": "SC",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Interior Sul",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1506549"
+    },
+    {
+      "Título": "Relatório de Avaliação nº 1415360 - DSEI Yanomami  Governança das atividades de saúde indígena 2021 a 2023 - Estado de Roraima",
+      "Data": "19/04/2024",
+      "UF": "RR",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Yanomami",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1415570"
+    },
+    {
+      "Título": "Relatório nº 1415393 - Distrito Sanitário Especial Indígena - Leste (Dsei-LRR) - Avaliação da governança e da gestão das atividades de saúde indígena - Roraima - 2021 a 2023",
+      "Data": "19/02/2024",
+      "UF": "RR",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Leste Roraima",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1415628"
+    },
+    {
+      "Título": "Relatório de Avaliação dos Resultados da Gestão nº 201900579 - Secretaria Especial de Saúde Indígena",
+      "Data": "04/12/2020",
+      "UF": "DF",
+      "Unidade Auditada": "Ministério da Saúde",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/892985"
+    },
+    {
+      "Título": "RDE N° 201800514 - Promoção, Proteção e Recuperação da Saúde Indígena no Município de Itaituba/PA",
+      "Data": "13/10/2019",
+      "UF": "PA",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Rio Tapajós",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/856403"
+    },
+    {
+      "Título": "Relatório de Auditoria Anual de Contas nº 201800002 - Secretaria Especial de Saúde Indigena - exercício de 2017",
+      "Data": "24/10/2018",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/857179"
+    },
+    {
+      "Título": "Relatório de Auditoria Anual de Contas - 201600605 - Secretaria Especial de Saúde Indígena - SESAI - Exercício 2015",
+      "Data": "18/11/2016",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/860307"
+    },
+    {
+      "Título": "Relatório de Auditoria Anual de Contas - Exercício 2012 - SECRETARIA ESPECIAL DE SAUDE INDIGENA - SE",
+      "Data": "16/09/2016",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/862964"
+    },
+    {
+      "Título": "Relatório 201408919 - Secretaria Especial de Saúde Indígena/MS",
+      "Data": "16/09/2016",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/862053"
+    }
+  ],
+  "tcu_tabela": [
+    {
+      "Ano": "2023",
+      "Assunto": "Representação, com pedido de medida cautelar, sobre possíveis irregularidades em pregão eletrônico para registro de preços visando contratar serviços de transporte aéreo para emprego em missões de assistência à saúde indígena. Análise de resposta a oitiva prévia.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=835473",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Solicitação do Congresso Nacional para a realização de auditoria na execução orçamentária da Secretaria Especial de Saúde Indígena para o enfrentamento da pandemia da Covid-19.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=823732",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "1905",
+      "Assunto": "Representação sobre possíveis irregularidades em pregão eletrônico para contratação de serviços de fornecimento de refeições destinadas aos pacientes indígenas e acompanhantes em tratamento de saúde nas Casas de Apoio à Saúde Indígena de Redenção e São Felix do Xingu. Análise de oitivas e diligências.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=840758",
+      "Órgão": "TCU"
+    }
+  ],
+  "tcu_resumo_extrativo_concatenado": "Adicionalmente, entendeu-se que não havia a presença do pressuposto do perigo de demora reverso, pois, conforme consta no TR, em sua justificativa para a contratação, Item 26.1 (peça 4, p. 19), a UJ possui outros três contratos de horas voos, sendo o Contrato 6/2018, para prestação de serviço aéreo do tipo monomotor e Caravan (asas fixas), com vigência até 1/8/2023; Consoante o art. 276 do Regimento Interno/TCU, o relator poderá, em caso de urgência, de fundado receio de grave lesão ao Erário, ao interesse público, ou de risco de ineficácia da decisão de mérito, de ofício ou mediante provocação, adotar medida cautelar, determinando a suspensão do procedimento impugnado, até que o Tribunal julgue o mérito da questão. Está configurado o pressuposto do perigo da demora por tratar-se de contratação decorrente de registro de preço, cujas atas de registro de preços decorrentes do certame já foram assinadas, porém, os serviços ainda não foram iniciados e/ou não há ordem de serviço ou algum tipo de demanda preliminar da administração à contratada. (grifou-se) Lei 14.133/2021 Art. 5o Na aplicação desta Lei, serão observados os princípios da legalidade, da impessoalidade, da moralidade, da publicidade , da eficiência, do interesse público, da probidade administrativa, da igualdade, do planejamento, da transparência, da eficácia, da segregação de funções, da motivação, da vinculação ao edital, do julgamento objetivo, da segurança jurídica, da razoabilidade, da competitividade, da proporcionalidade, da celeridade, da economicidade e do desenvolvimento nacional sustentável, assim como as disposições do Decreto-Lei no 4.657, de 4 de setembro de 1942 (Lei de Introdução às Normas do Direito Brasileiro). Em face do exposto, entende-se que há procedência na irregularidade tratada neste tópico, e, em razão dela, conjuntamente com as demais irregularidades que serão tratadas nos tópicos seguintes, propõe-se que seja assinado prazo para que a UJ adote as medidas necessárias à anulação do PE 4/2023 e, consequentemente, as respectivas atas de registro de preços decorrentes, com fundamento no art. 251 do Regimento Interno do TCU. 30. Apesar de ter respondido a oitiva prévia e a diligência, conforme acostado às peças 27 e 28, quanto ao indício de irregularidade tratada no item 'b', a UJ não se manifestou, no sentido de enviar justificativas plausíveis para a rejeição indevida da impugnação ao edital e violação do princípio da autotutela. Acórdão 969/2022-TCU-Plenário , relator Ministro Bruno Dantas Em licitação eletrônica, é irregular, por configurar excesso de formalismo, a limitação do prazo de impugnação do edital ao horário de funcionamento da entidade promotora do certame, vez que a impugnação pode ser feita de maneira remota, pela internet, não exige funcionários da entidade de prontidão para o seu recebimento e não interfere no horário de início da análise de impugnação, não havendo razão para que não seja aceita até às 23h59min da data limite. Acórdão 1842/2018-TCU-Plenário , relator Ministro Augusto Sherman A medida cautelar do TCU que determina a suspensão de licitação por falhas no edital não impede o órgão ou a entidade de rever seu ato convocatório, valendo-se do poder de autotutela (art. 49 da Lei 8.666/1993 c/c o art. 9o da Lei 10.520/2002), com o objetivo de, antecipando-se a eventual deliberação do Tribunal, promover de modo próprio a anulação da licitação e o refazimento do edital, livre dos vícios apontados. 36. Por conseguinte, entende-se que há procedência na irregularidade tratada neste tópico, e, em razão dela, conjuntamente com as demais irregularidades que serão tratadas nos tópicos seguintes, propõe-se que seja assinado prazo para que a UJ adote as medidas necessárias à anulação do PE 4/2023 e, consequentemente, as respectivas atas de registro de preços decorrentes, com fundamento no art. 251 do Regimento Interno do TCU. 39. Dito isso, entende-se que há procedência na irregularidade tratada neste tópico, e, em razão dela, conjuntamente com as demais irregularidades que serão tratadas nos tópicos seguintes, propõe-se que seja assinado prazo para que a UJ adote as medidas necessárias à anulação do PE 4/2023 e, consequentemente, as respectivas atas de registro de preços decorrentes, com fundamento no art. 251 do Regimento Interno do TCU. 52.\n\nSenador Omar Aziz, Presidente da Comissão Parlamentar de Inquérito do Senado destinada a apurar as ações e omissões do Governo Federal no enfrentamento da pandemia da Covid-19 no Brasil (CPI - Pandemia), de realização, por parte deste Tribunal e em caráter de urgência, de auditoria na execução orçamentária da Secretaria Especial de Saúde Indígena (Sesai) para o enfrentamento da pandemia da Covid-19 durante o período de fevereiro de 2020 a julho de 2021 (peça 1). HISTÓRICO Conforme disposto no Ofício 2.294/2021-CPIPANDEMIA, a presente solicitação teve como objetivo instruir os trabalhos da CPI - Pandemia, criada a partir dos Requerimentos do Senado Federal 1371 e 1372, todos de 2021 (peça 1, p. 1), nos exatos termos do Requerimento 1301/2021, da lavra do Senador Humberto Costa, que solicitou a este Tribunal uma avaliação da execução orçamentária no âmbito da Sesai para o enfrentamento da pandemia da Covid-19 durante o período de fevereiro de 2020 a julho de 2021, confrontando-a com o planejamento publicado e homologado, seja no âmbito da ADPF-709 ou do Ministério da Saúde (peça 3). Destacou-se que o objetivo da mencionada CPI era o de apurar as ações e omissões do Governo Federal no enfrentamento da pandemia da Covid-19 no Brasil; Por meio do Acórdão 2.170/2021, de relatoria do Ministro Vital do Rêgo, o Plenário desta Corte de Contas conheceu da presente solicitação e determinou a realização de auditoria de conformidade junto ao Ministério da Saúde (MS) e à Sesai, com o objetivo de avaliar a execução orçamentária para o enfrentamento da pandemia da Covid-19 durante o período de fevereiro de 2020 a julho de 2021, dando-se especial atenção a eventuais transferências de recursos da Saúde Indígena para o Ministério da Defesa (peça 11). Ocorre que, em 10/11/2021, o Auditor instrutor informou, por meio da peça 16, que, em reunião realizada em 3/11/2021 junto ao então Secretário da Sesai, foi reportada que a demora no atendimento da requisição deste Tribunal \"\"se devia à necessidade de angariar informações suficientes a fim de que não se incorresse em uma resposta incompleta\"\". Diante disso, e considerando que o prazo estipulado para a conclusão dos trabalhos de fiscalização já havia se encerrado em 23/10/2021, fez-se necessário propor a prorrogação do prazo para atendimento da presente SCN, com fulcro no art. 15, § 2o, da Resolução-TCU 215/2008 (peça 16, p. 2). Essa proposta contou com o aval da então Diretora e do Secretário da extinta SecexSaúde (peças 17 e 18, respectivamente) e, mediante a prolação do Acórdão 2.801/2021-TCU-Plenário (Ministro Relator Vital do Rêgo), foi prorrogado por mais sessenta dias o prazo para atendimento desta SCN (peça 20). Posteriormente, a extinta SecexSaúde entendeu necessário ampliar o objeto e o escopo da auditoria de conformidade que estava em curso, acrescentando a análise da regularidade de processos de aquisições da Sesai em 2020 e 2021, destinadas ao enfrentamento da pandemia da Covid-19 e, por conta disso, foi proposta prorrogação para o atendimento da presente SCN para o dia 19/5/2022 (peça 25). EXAME TÉCNICO Retornando os autos a esta Unidade Técnica, constatou-se que, em 13/12/2022, foi prolatado o Acórdão 2.786/2022-TCU-Plenário (peça 215 do TC 039.729/2021-4 em apenso), de relatoria do Ministro Vital do Rêgo, nos termos do excerto a seguir, que tratou de relatório de auditoria realizada na Sesai do Ministério da Saúde para avaliar a execução orçamentária para o enfrentamento da pandemia da Covid-19, em cumprimento à solicitação da CPI - Pandemia, e determinada pelo subitem 9.2 do Acórdão 2.170/2021-TCU-Plenário (peça 11): 9.1. (grifos acrescidos) Com fulcro no teor do Acórdão 2.786/2022-TCU-Plenário , conforme demonstrado no excerto anterior, conclui-se que a solicitação do Congresso Nacional, oriunda do Requerimento 1301/2021 da CPI - Pandemia do Senado Federal, objeto do presente processo, deve ser considerada integralmente atendida, uma vez que houve encaminhamento dos resultados da fiscalização solicitada ao colegiado solicitante por meio do Aviso 1583-GP/TCU e respectiva ciência (peças 228 e 229 do TC 039.729/2021-4 em apenso, respectivamente). considerar integralmente atendida a Solicitação do Congresso Nacional oriunda do Requerimento 1301/2021 da CPI - Pandemia do Senado Federal, nos termos do art. 17, inciso II, da Resolução-TCU 215/2008;\n\nTrata-se de representação formulada pela empresa Higicler Distribuidora Ltda sobre possíveis irregularidades ocorridas no Pregão Eletrônico 29/2022, sob a responsabilidade do Distrito Sanitário Especial Indígena Kaiapó do Pará do Ministério da Saúde (DSEI Kaiapó/MS), com valor estimado de R$ 2.869.770,00, tendo por objeto a contratação de empresa especializada para operacionalização e desenvolvimento de todas as atividades com vista ao fornecimento de cinco refeições diárias, de segunda-feira a domingo, destinadas aos pacientes indígenas e acompanhantes em tratamento de saúde nas Casas de Apoio à Saúde Indígena de Redenção e São Felix do Xingu (peça 1). INTRODUÇÃO Trata-se de representação apresentada pela empresa Higicler Distribuidora Ltda (CNPJ: 23.624.879/0001-48) a respeito de possíveis irregularidades ocorridas no Pregão Eletrônico 29/2022, sob a responsabilidade de Distrito Sanitário Especial Indígena Kaiapó Do Pará - Ministério da Saúde (DSEI Kaiapó), com valor estimado de R$ 2.869.770,00, cujo objeto é a contratação de empresa especializada para operacionalização e desenvolvimento de todas as atividades com vista ao fornecimento de 5 refeições diárias, de segunda-feira a domingo, destinadas aos pacientes indígenas e acompanhantes em tratamento de saúde nas Casas de Apoio a Saúde Indígena de Redenção e São Felix do Xingu (peça 1). Documento inserido de forma errônea, tendo em vista que é atribuição do pregoeiro\"\" no dia 6/12/2022, após tomar conhecimento do provimento do recurso da empresa Floresta, o qual culminou no retorno de fase para o Grupo 1, o representante constatou que a decisão desferida pelo pregoeiro Alair Cardoso Ferreira no dia 22/11/2022 havia desaparecido, e, em seu lugar, constava uma outra decisão com data de 6/12/2022 assinada pelo Pregoeiro Substituto; O representante trouxe como evidências para as irregularidades apontadas acima os documentos constantes na representação inicial (peça 1), Edital PE 29/2022 (peça 4), descrição completa da representação (peça 5), decisão do Pregoeiro (peça 6), despacho do Pregoeiro (peça 7), documentos referentes ao processo licitatório PE 29/2022 (peça 8), ata de reunião (peça 9), print de tela do processo do SEI (peça 10), despacho do Pregoeiro (peça 11), comunicações com o órgão licitante (peça 12), decisão de recurso administrativo (peça 13), termo de cancelamento de documento SEI (peça 14), e-mail comprasnet (peça 15), despacho do Coordenador (peça 16), ata de reunião (peça 17), manifestação na ouvidoria Ministério da Economia (peça 18), despacho sobre o pedido de revisão (peça 19), e e-mail SERPRO (peça 20). EXAME TÉCNICO Análise dos pressupostos para adoção de medida cautelar Consoante o art. 276 do Regimento Interno/TCU, o Relator poderá, em caso de urgência, de fundado receio de grave lesão ao Erário, ao interesse público, ou de risco de ineficácia da decisão de mérito, de ofício ou mediante provocação, adotar medida cautelar, determinando a suspensão do procedimento impugnado, até que o Tribunal julgue o mérito da questão. realizar a oitiva prévia do Distrito Sanitário Especial Indígena Kaiapó do Pará - Ministério da Saúde, com fulcro no art. 276, § 2o, do Regimento Interno deste Tribunal para que, no prazo de cinco dias úteis , se pronuncie, referente ao objeto pregão 29/2022, acerca da existência dos pressupostos da medida cautelar pleiteada e acerca dos indícios de irregularidade indicados nesta instrução, em especial quanto aos seguintes tópicos: EXAME TÉCNICO Análise dos pressupostos para adoção de medida cautelar Consoante o art. 276 do Regimento Interno/TCU, o Relator poderá, em caso de urgência, de fundado receio de grave lesão ao Erário, ao interesse público, ou de risco de ineficácia da decisão de mérito, de ofício ou mediante provocação, adotar medida cautelar, determinando a suspensão do procedimento impugnado, até que o Tribunal julgue o mérito da questão. Perigo da demora reverso Quanto ao perigo da demora reverso, está configurado a presença do pressuposto por se tratar de contratação de serviço ou bem essencial ao funcionamento das atividades da unidade jurisdicionada e não haver contrato anterior com razoável vigência (que comporte voltar a fase ou refazer o certame, a depender da consequência da concessão de cautelar no caso concreto) ou possibilidade de prorrogação, ainda que excepcional.",
+  "achados_text": "**Principais achados**\n\nA auditoria, motivada por representação da empresa Higicler Distribuidora Ltda, apurou possíveis irregularidades no Pregão Eletrônico 29/2022 do DSEI Kaiapó/MS, com valor estimado em R$ 2.869.770,00, para fornecimento de refeições a indígenas. A análise incluiu documentos como edital, atas e despachos. O TCU, em cumprimento ao Acórdão 2.786/2022-TCU-Plenário, concluiu que a solicitação da CPI da Pandemia foi atendida. Foram identificadas falhas, como a ausência de decisão do pregoeiro e restrições no prazo de impugnação do edital, configurando \"excesso de formalismo\".\n\nA auditoria também constatou a necessidade de anulação do Pregão Eletrônico 4/2023 e das atas de registro de preços decorrentes, devido a irregularidades. Foi analisada a necessidade de medida cautelar, considerando o perigo da demora e o perigo da demora reverso. A UJ foi instada a se manifestar sobre os indícios de irregularidades. A auditoria avaliou a execução orçamentária da Sesai para o enfrentamento da pandemia da Covid-19, com foco em possíveis transferências de recursos.\n\n**Principais fragilidades**\n\nForam identificadas fragilidades no processo licitatório, como a restrição do prazo para impugnação do edital, que limitou a participação e a transparência. A ausência de uma decisão do pregoeiro, que foi substituída, indica falhas na gestão documental e na responsabilização. A falta de justificativas plausíveis para a rejeição de impugnações e a violação do princípio da autotutela demonstram fragilidades no controle interno e na aplicação da legislação.\n\nA demora no atendimento às requisições do TCU e a necessidade de prorrogação de prazos para análise evidenciam deficiências no fluxo de informações e na capacidade de resposta da unidade jurisdicionada. A ausência de um contrato anterior com razoável vigência ou possibilidade de prorrogação, que poderia mitigar os impactos da anulação da licitação, demonstra falta de planejamento e gestão de riscos.\n"
+}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-cgu">
+        <thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-tcu">
+        <thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3ª Seção -->
+  <div class="card section">
+    <h2>Achados/Fragilidades TCU</h2>
+    <div id="achados" class="achados"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Helpers */
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+  function escapeRegExp(s){return String(s).replace(/[-\/^$*+?.()|[\]{}]/g,'\\$&');}
+  function getYearFromDateStr(s){var m=String(s||'').match(/\b(\d{4})\b/);return m?m[1]:'';}
+  function textOrEmpty(v){return (v===0? '0' : (v==null? '' : String(v)));}
+
+  // Lê seed
+  var seed = {resumo:'', cgu_tabela:[], tcu_tabela:[], achados_text:'', tcu_resumo_extrativo_concatenado:''};
+  try{ seed = JSON.parse(document.getElementById('seed').textContent||'{}'); }catch(e){}
+
+  // Realce de termos pesquisados
+  var themeMatch=(seed.resumo||'').match(/"([^"]+)"/);
+  var SEARCH_PHRASE=themeMatch?themeMatch[1].trim():'';
+  var STOP=new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que','di','du']);
+  var TERMS=(SEARCH_PHRASE?SEARCH_PHRASE.split(/\s+/):[]).filter(function(w){return w && w.length>=2 && !STOP.has(norm(w));});
+  var DIA={'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  function diacriticPart(s){return s.split('').map(function(ch){var lc=ch.toLowerCase();if(DIA[lc])return DIA[lc]; if(/\s/.test(ch))return '\\s+'; return escapeRegExp(ch);}).join('');}
+  function buildSearchRegex(){var parts=[]; if(SEARCH_PHRASE)parts.push(diacriticPart(SEARCH_PHRASE)); TERMS.forEach(function(t){parts.push(diacriticPart(t));}); if(!parts.length)return null; return new RegExp('(?:^|\\b)(' + parts.join('|') + ')(?=\\b|$)','gi');}
+  var SEARCH_RE = buildSearchRegex();
+  function highlightBold(txt){var s=textOrEmpty(txt); if(!SEARCH_RE) return s; return s.replace(SEARCH_RE, function(m){return '<b class="hl">'+m+'</b>';});}
+
+  // Título/resumo
+  document.title='Painel de '+(SEARCH_PHRASE?SEARCH_PHRASE:'Auditoria');
+  document.getElementById('titulo').textContent=document.title;
+  document.getElementById('resumo').textContent=textOrEmpty(seed.resumo);
+
+  // Mapeia tabelas
+  var CGU=(seed.cgu_tabela||[]).map(function(x){
+    return {_src:'CGU', Titulo:textOrEmpty(x['Título']), Data:textOrEmpty(x['Data']),
+            UF:(x.hasOwnProperty('UF')?x['UF']:''), Unidade:textOrEmpty(x['Unidade Auditada']),
+            Orgao:textOrEmpty(x['Órgão']||'CGU'), Tipo:textOrEmpty(x['Tipo de Serviço']), Link:textOrEmpty(x['Link'])};
+  });
+  var TCU=(seed.tcu_tabela||[]).map(function(x){
+    return {_src:'TCU', Ano:textOrEmpty(x['Ano']), Assunto:textOrEmpty(x['Assunto']),
+            Link:(x.hasOwnProperty('Link')?x['Link']:''), Orgao:textOrEmpty(x['Órgão']||'TCU')};
+  }).sort(function(a,b){return (parseInt(b.Ano||0,10)||0)-(parseInt(a.Ano||0,10)||0);});
+
+  // Totais
+  document.getElementById('cgu-tot').textContent=CGU.length;
+  document.getElementById('tcu-tot').textContent=TCU.length;
+
+  // Filtros
+  var fTxt=document.getElementById('f-texto'), fAno=document.getElementById('f-ano'), fUF=document.getElementById('f-uf'), fOrg=document.getElementById('f-orgao');
+  var yearSet={}; CGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(y) yearSet[y]=true;}); TCU.forEach(function(r){var y=r.Ano; if(y) yearSet[y]=true;});
+  Object.keys(yearSet).sort(function(a,b){return b-a;}).forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;fAno.appendChild(o);});
+  var ufSet={}; CGU.forEach(function(r){var u=(r.UF!=null && r.UF!=='N/A')?String(r.UF):''; if(u) ufSet[u]=true;});
+  Object.keys(ufSet).sort().forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=u;fUF.appendChild(o);});
+
+  var cguBody=document.querySelector('#tbl-cgu tbody');
+  var tcuBody=document.querySelector('#tbl-tcu tbody');
+
+  function renderTables(rowsCGU,rowsTCU){
+    // CGU
+    cguBody.innerHTML='';
+    if(!rowsCGU.length){var tr=document.createElement('tr');var td=document.createElement('td');
+      td.colSpan=6;td.className='no-results';td.textContent='Nenhum registro para exibir.';tr.appendChild(td);cguBody.appendChild(tr);
+    }else{
+      rowsCGU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+highlightBold(r.Titulo)+'</td><td>'+r.Data+'</td><td>'+r.UF+'</td><td>'+r.Unidade+'</td><td>'+r.Tipo+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        cguBody.appendChild(tr);
+      });
+    }
+    // TCU
+    tcuBody.innerHTML='';
+    if(!rowsTCU.length){var tr2=document.createElement('tr');var td2=document.createElement('td');
+      td2.colSpan=3;td2.className='no-results';td2.textContent='Nenhum registro para exibir.';tr2.appendChild(td2);tcuBody.appendChild(tr2);
+    }else{
+      rowsTCU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.Ano+'</td><td>'+highlightBold(r.Assunto)+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        tcuBody.appendChild(tr);
+      });
+    }
+  }
+
+  // Gráficos
+  var bar=document.getElementById('bar'), pie=document.getElementById('pie');
+  var barLegend=document.getElementById('bar-legend'), pieLegend=document.getElementById('pie-legend');
+  function drawBar(rowsCGU,rowsTCU){
+    var ctx=bar.getContext('2d'); ctx.clearRect(0,0,bar.width,bar.height); barLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].CGU++;});
+    rowsTCU.forEach(function(r){var y=r.Ano; if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].TCU++;});
+    var labels=Object.keys(agg).sort(function(a,b){return a-b;});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',bar.width/2,bar.height/2);return;}
+    var pad={t:20,r:16,b:40,l:28}, w=bar.width-pad.l-pad.r, h=bar.height-pad.t-pad.b, max=1;
+    labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});
+    ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();
+    ctx.fillStyle='#555';ctx.textAlign='right';
+    for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}
+    var groupW=w/labels.length, barW=Math.max(8,groupW*0.35);
+    var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu')||'#0a9396';
+    var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu')||'#94d2bd';
+    labels.forEach(function(y,i){
+      var x=pad.l+i*groupW+groupW/2;
+      var hCGU=(agg[y].CGU/max)*h, hTCU=(agg[y].TCU/max)*h;
+      ctx.fillStyle=String(cguColor).trim(); ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);
+      ctx.fillStyle=String(tcuColor).trim(); ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);
+      ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);
+    });
+    function leg(color,text){var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+color+'"></span>'+text;barLegend.appendChild(d);}
+    leg(String(cguColor).trim(),'CGU'); leg(String(tcuColor).trim(),'TCU');
+  }
+  function drawPie(rowsCGU){
+    var ctx=pie.getContext('2d'); ctx.clearRect(0,0,pie.width,pie.height); pieLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var u=r.UF||'N/A'; agg[u]=(agg[u]||0)+1;});
+    var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',pie.width/2,pie.height/2);return;}
+    var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];
+    var total=labels.reduce(function(s,k){return s+agg[k];},0);
+    var start=-Math.PI/2, cx=pie.width/2, cy=pie.height/2, r=Math.min(cx,cy)-14;
+    labels.forEach(function(label,i){
+      var val=agg[label], ang=(val/total)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+ang); ctx.closePath(); ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+      var pct=((val/total)*100).toFixed(1)+'%';
+      var d=document.createElement('div'); d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';
+      pieLegend.appendChild(d); start+=ang;
+    });
+  }
+
+  function apply(){
+    var txt=norm(document.getElementById('f-texto').value);
+    var ano=document.getElementById('f-ano').value;
+    var uf=document.getElementById('f-uf').value;
+    var org=document.getElementById('f-orgao').value;
+
+    function passCGU(r){
+      if(org && org!=='CGU') return false;
+      if(uf && String(r.UF)!==String(uf)) return false;
+      var y=getYearFromDateStr(r.Data); if(ano && y!==ano) return false;
+      if(txt){var hay=norm([r.Titulo,r.Data,r.UF,r.Unidade,r.Orgao,r.Tipo].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+    function passTCU(r){
+      if(org && org!=='TCU') return false;
+      if(ano && String(r.Ano)!==String(ano)) return false;
+      if(txt){var hay=norm([r.Ano,r.Assunto,r.Link,r.Orgao].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+
+    var c=CGU.filter(passCGU), t=TCU.filter(passTCU);
+    document.getElementById('cgu-vis').textContent=c.length;
+    document.getElementById('tcu-vis').textContent=t.length;
+    renderTables(c,t); drawBar(c,t); drawPie(c);
+  }
+
+  // Render inicial
+  renderTables(CGU,TCU); drawBar(CGU,TCU); drawPie(CGU);
+  document.getElementById('cgu-vis').textContent=CGU.length;
+  document.getElementById('tcu-vis').textContent=TCU.length;
+  ['f-texto','f-ano','f-uf','f-orgao'].forEach(function(id){
+    var el=document.getElementById(id); el.addEventListener('input',apply); el.addEventListener('change',apply);
+  });
+
+  // ---- 3ª Seção: formata markdown leve do LLM ----
+  function mdLiteToHtml(src){
+    var s = String(src||'');
+    // escape básico
+    s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // **bold** e *itálico*
+    s = s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    s = s.replace(/\*(.+?)\*/g,'<i>$1</i>');
+    // listas iniciadas por "- "
+    if (/^\s*-\s+/m.test(s)) {
+      s = s.replace(/^(\s*-\s+.+)(?:\n(\s*-\s+.+))*?/gms, function(block){
+        const items = block.split(/\n/).map(l=>l.replace(/^\s*-\s+/,'').trim()).filter(Boolean);
+        return '<ul>'+items.map(it=>'<li>'+it+'</li>').join('')+'</ul>';
+      });
+    }
+    // parágrafos / quebras
+    s = s.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+    return '<p>'+s+'</p>';
+  }
+  var achadosHtml = seed.achados_text && seed.achados_text.trim() ? mdLiteToHtml(seed.achados_text) : '<p class="no-results">Sem conteúdo.</p>';
+  document.getElementById('achados').innerHTML = achadosHtml;
+})();
+</script>
+
+</body>
+</html>
