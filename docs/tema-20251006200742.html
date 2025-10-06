@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box} body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px} #resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.filters label{font-weight:600;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1} tbody tr:nth-child(even){background:#fafbfc} tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap} a.link:hover{text-decoration:underline}
+.no-results{padding:18px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+/* 3ª seção — melhor formatação do texto do LLM (markdown leve) */
+.achados{line-height:1.55;color:#222}
+.achados p{margin:0 0 10px}
+.achados ul{margin:0 0 10px 18px}
+.achados li{margin:3px 0}
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SEED: JSON do workflow -->
+<script id="seed" type="application/json">{
+  "resumo": "Exibindo os itens mais relevantes por fonte para \"farmacia popular\".",
+  "cgu_tabela": [
+    {
+      "Título": "Relatório de Apuração nº 823121 - Processo de autorização de venda do Programa Farmácia Popular do Brasil - Ministério da Saúde (MS)",
+      "Data": "04/01/2024",
+      "UF": "SC",
+      "Unidade Auditada": "Ministério da Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1541439"
+    },
+    {
+      "Título": "RDE nº 00106.012938/2016-60 - Drogaria Dosesi Ltda - Programa Farmácia Popular do Brasil",
+      "Data": "24/04/2019",
+      "UF": "RS",
+      "Unidade Auditada": "Secretaria de Ciência, Tecnologia e Inovação e do Complexo Econômico-Industrial da Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/856560"
+    }
+  ],
+  "tcu_tabela": [
+    {
+      "Ano": "2051",
+      "Assunto": "Prorrogação de prazo para atendimento de Solicitação do Congresso Nacional, cujo objeto é de auditoria no Programa Farmácia Popular.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=800830",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2025",
+      "Assunto": "Recurso de reconsideração interposto contra acórdão que, entre outras providências, julgou irregulares contas especiais da recorrente e de outros responsáveis e aplicou-lhes multas, em virtude de irregularidades na execução do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=889584",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2025",
+      "Assunto": "Recurso de reconsideração interposto contra acórdão que julgou as contas das recorrentes irregulares e condenou-as ao pagamento de débito e de multas em razão de aplicação irregular dos recursos do Sistema Único de Saúde (SUS), no âmbito do Programa Farmácia Popular do Brasil (PFPB).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=875312",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2025",
+      "Assunto": "Recurso de reconsideração interposto contra acórdão que julgou irregulares as contas da recorrente e a condenou, solidariamente com outro responsável, ao pagamento de débito e multa em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil  Aqui Tem Farmácia Popular (PFPB).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=859602",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Recurso de reconsideração interposto por Drogaria Marotto Ltda. contra decisão que julgou irregulares suas contas, imputando-lhe débito e multa. Programa Farmácia Popular do Brasil.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860030",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Recurso de reconsideração interposto contra decisão que condenou os responsáveis em débito e aplicou-lhes multa por irregularidades na comprovação dos recursos utilizados por meio do Programa Farmácia Popular do Brasil.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=852361",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Recurso de reconsideração interposto contra decisão que julgou irregulares as contas do responsável, condenando-o ao pagamento de débito e multa, em virtude de irregularidades na execução de recursos disponibilizados no Programa Farmácia Popular do Brasil.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=842143",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Recurso de reconsideração interposto contra decisão que julgou irregulares as contas do recorrente, com condenação em débito e multa, ante a constatação de irregularidades na execução das despesas relacionadas ao Programa Farmácia Popular do Brasil.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=833350",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Recurso de reconsideração contra acórdão que julgou irregulares as contas dos recorrentes e condenou-os ao pagamento de débito e de multa em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil  Aqui Tem Farmácia Popular (PFPB).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=832968",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Recurso de reconsideração interposto contra decisão que julgou irregulares as contas dos responsáveis e os condenou em débito e multa, em virtude de irregularidades na aplicação de recursos disponibilizados no Programa Farmácia Popular do Brasil.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=825830",
+      "Órgão": "TCU"
+    }
+  ],
+  "tcu_resumo_extrativo_concatenado": "Mediante o Acórdão 603/2022-TCU-Plenário , de 23/3/2022, de relatoria do Ministro Vital do Rêgo, o TCU encaminhou ao Presidente da Comissão de Defesa do Consumidor da Câmara dos Deputados lista de processos de Tomada de Contas Especiais autuadas pelo Tribunal relativas ao Programa Farmácia Popular (peças 11 a 16), totalizando, no período de 2017 a 2022, 313 processos de TCE, correspondente ao montante de débito apurado de R$ 116.213.725,10, fato que por si só revela a atuação primária do ente transferidor, no caso o Ministério da Saúde, por meio do Fundo Nacional de Saúde (FNS). Dessa forma, o mesmo Acórdão informou que a Solicitação do Congresso Nacional foi parcialmente atendida, a qual será integralmente atendida por intermédio do TC 002.450/2022-4 , autuado em 18/2/2022, processo de monitoramento do Acórdão 2.074/2015-TCU-Plenário , de relatoria do Ministro Vital do Rêgo - acórdão esse que monitorou a deliberação que apreciou auditoria realizada em 2010, focada na análise da cobertura, dos aspectos econômicos e dos controles internos do Programa Farmácia Popular - Sistema de Copagamento, no âmbito da rede privada de farmácias e drogarias, denominado \"\"Aqui tem Farmácia Popular\"\" ( Acórdão 3030/2010-TCU-Plenário ) -, uma vez reconhecida conexão parcial do respectivo objeto com o da presente solicitação. Nesse meio tempo, considerando as circunstâncias que se apresentaram, o prazo para atendimento do presente processo foi prorrogado por noventa dias, ficando, assim, estabelecida a data de 20/9/2022 para atendimento da SCN, conforme o item 9.1 do Acórdão 1451/2022-TCU-Plenário , de relatoria do Ministro Vital do Rêgo, em razão da ampliação do escopo do processo de monitoramento, que acrescentou a análise do diagnóstico do esquema de fraude noticiado pela imprensa e a nova linha de atuação do Denasus para apuração de irregularidades levantadas na execução do Programa Farmácia Popular. Dessa forma, conclui-se que no decorrer do planejamento da fiscalização a situação do objeto auditado apresentou-se mais trabalhosa e complexa que inicialmente imaginado e, não obstante a dilação do prazo concedida por intermédio do Acórdão 1451/2022-TCU-Plenário , de relatoria do Ministro Vital do Rêgo, nos termos do art. 15, inciso II, §2o da Resolução-TCU 215/2008, que estabelece o prazo máximo de 180 dias para atendimento de uma SCN, podendo ser prorrogado, uma única vez, pela metade do prazo inicialmente fixado, propõe-se, excepcionalmente, que o prazo seja prorrogado por mais sessenta dias, para que o objeto auditado seja devidamente analisado para a produção do relatório de fiscalização, destacando-se a materialidade envolvida e a importância do programa para a população assistida. Considerou-se que a SCN seria plenamente atendida mediante a instrução do TC 002.450/2022-4 , autuado em 18/2/2022, processo de monitoramento do Acórdão 2.074/2015-TCU-Plenário , de relatoria do Ministro Vital do Rêgo, acórdão esse que monitorou a deliberação que apreciou auditoria realizada em 2010, focada na análise da cobertura, dos aspectos econômicos e dos controles internos do Programa Farmácia Popular - Sistema de Copagamento, no âmbito da rede privada de farmácias e drogarias, denominado \"\"Aqui tem Farmácia Popular\"\" ( Acórdão 3030/2010-TCU-Plenário ). Apesar disso, em razão da ampliação do escopo do processo de monitoramento, que acrescentou a análise do diagnóstico do esquema de fraude noticiado pela imprensa e a nova linha de atuação do Denasus para apuração de irregularidades levantadas na execução do Programa Farmácia Popular, o prazo para atendimento da presente solicitação foi prorrogado, nos termos do § 2o do art. 15 da Resolução-TCU 215/2008, por noventa dias, ou seja, até 20/9/2022 ( Acórdão 1451/2022-TCU-Plenário ). Assim, dadas as novas informações, não haverá tempo hábil para que a SCN seja atendida, mesmo com a prorrogação do prazo de noventa dias, concedida nos termos do § 2o do art. 15 da Resolução-TCU 215/2008, por intermédio do item 9.1 do Acórdão 1451/2022-TCU-Plenário , de relatoria do Ministro Vital do Rêgo, razão por que se propõe seja concedido, excepcionalmente, o prazo adicional de sessenta dias para seu atendimento, cujo prazo findará em 21/11/2022.\n\ne seus sócios-administradores Carlos Alberto de Oliveira Filho, Julianna Munilla Fernandes Oliveira de Faria e Nathali de Fatima Rochetto, dando-se prosseguimento ao processo, nos termos do art. 12, § 3o, da Lei 8.443, de 16/7/1992, combinado com o art. 202, § 8o, do Regimento Interno do TCU; 9.2. Julianna Munilla Fernandes Oliveira de Faria e Nathali de Fatima Rochetto, condenando-os solidariamente ao pagamento das quantias a seguir especificadas, atualizadas monetariamente e acrescidas dos juros de mora desde as respectivas datas até o dia do efetivo recolhimento, e fixando-lhes o prazo de 15 (quinze) dias, a contar da notificação deste Acórdão, para que comprovem, perante o Tribunal, o recolhimento da dívida aos cofres do Fundo Nacional de Saúde, nos termos do art. 23, inciso III, alínea 'a', da Lei 8.443/1992, c/c o art. 214, inciso III, alínea 'a', do Regimento Interno do TCU: 9.2.1. Julianna Munilla Fernandes Oliveira de Faria e Nathali de Fatima Rochetto a multa prevista no art. 57 da Lei 8.443/1992 combinado com o art. 267 do Regimento Interno desta Corte, com a fixação do prazo de 15 (quinze) dias, a contar da respectiva notificação, para que comprovem, perante o Tribunal (art. 214, inciso III, alínea 'a', do Regimento Interno-TCU), o recolhimento das dívidas aos cofres do Tesouro Nacional, atualizadas monetariamente desde a data deste Acórdão até a do efetivo recolhimento, se forem pagas após o vencimento, na forma da legislação em vigor: A presente TCE originou-se de constatações do Departamento Nacional de Auditoria do SUS (Denasus) em auditoria realizada entre 18/4/2016 e 29/4/2016, com a finalidade de avaliar a execução do PFPB junto ao estabelecimento comercial C & J Comercial de Produtos Farmacêuticos Ltda., abrangendo o período de novembro de 2014 a março de 2016, tendo sido constatado dano ao erário no valor histórico de R$ 91.346,03 (peça 50, p. 13), devido à irregularidade nas dispensações e/ou na documentação comprobatória de dispensações de medicamentos do Programa Farmácia Popular do Brasil, caracterizada por: A partir dos exames da fase externa desta TCE (peças 52-54), realizou-se a citação de C & J Comercial de Produtos Farmacêuticos Ltda., Carlos Alberto de Oliveira Filho (sócio administrador de 3/6/2013 a 28/6/2017), Julianna Munilla Fernandes Oliveira de Faria (sócia administradora de 3/6/2013 a 25/2/2016), e Nathali de Fátima Rochetto (sócia administradora de 25/2/2016 a 7/11/2016), em razão das seguintes ocorrências (peças 61 e 71-73): Em caso de débito apontado em auditoria no âmbito do Programa Farmácia Popular do Brasil (PFPB), o marco inicial da contagem do prazo da prescrição das pretensões punitiva e ressarcitória do TCU é a data do relatório da respectiva auditoria (art. 4o, inciso IV, da Resolução TCU 344/2022) , pois as irregularidades não se caracterizam como de natureza continuada, referindo-se, em regra, a eventos pontuais, a exemplo da dispensação de medicamentos sem a correspondente nota fiscal que comprove sua aquisição pelo estabelecimento comercial ou destinados a pessoa já falecida ( Acórdão 10815/2023-TCU-1a Câmara , rel. A partir da leitura desses dispositivos legais, chega-se à conclusão de que o período de gestão de Julianna Munilla Fernandes Oliveira de Faria na condição de sócia administradora da empresa C & J Comercial de Produtos Farmacêuticos Ltda. No presente caso, conclui-se que as ilegalidades cometidas (registro de dispensação de medicamentos sem notas fiscais que comprovem a aquisição e não apresentação de cópia do cupom fiscal, cupom vinculado e/ou receitas médicas solicitados) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência), tendo a responsável pessoa jurídica assumido todos os riscos envolvidos na prática do ato, pois era de se esperar dela a escorreita apresentação da documentação comprobatória de dispensações de medicamentos do Programa Farmácia Popular, abrangendo o período de 3/11/2014 a 17/2/2016 (infração aos arts. 23, §§ 2o e 3o, 39 e 40, inciso I, da Portaria GM/MS 971/2012;\n\nDATA DA OCORRÊNCIA VALOR ORIGINAL (R$) 03/03/2015 282,09 04/03/2015 1.527,00 02/04/2015 670,80 02/04/2015 360,51 05/05/2015 234,15 05/05/2015 133,60 12/06/2015 80,00 12/06/2015 234,20 07/07/2015 397,20 08/07/2015 381,70 05/08/2015 322,30 05/08/2015 121,45 31/08/2015 198,90 31/08/2015 46,80 31/08/2015 13,77 14/10/2015 432,90 14/10/2015 46,80 15/10/2015 442,26 30/10/2015 80,00 30/10/2015 46,80 05/11/2015 600,21 18/12/2015 1.662,80 18/12/2015 315,90 21/01/2016 2.107,10 21/01/2016 787,95 17/02/2016 1.010,39 17/02/2016 1.365,30 17/02/2016 46,80 09/03/2016 505,44 09/03/2016 2.194,50 01/04/2016 1,80 01/04/2016 63,18 01/04/2016 852,93 01/04/2016 1.577,00 01/04/2016 46,80 29/04/2016 1.926,40 03/05/2016 947,70 31/05/2016 20,52 31/05/2016 2.238,20 31/05/2016 559,17 30/06/2016 1.348,11 30/06/2016 2.727,80 03/08/2016 1.478,79 03/08/2016 2.802,40 03/08/2016 31,20 09/09/2016 2.752,50 09/09/2016 861,30 30/09/2016 1.081,89 30/09/2016 2.221,90 30/09/2016 46,80 11/11/2016 1.276,02 11/11/2016 2.415,50 11/11/2016 31,20 29/11/2016 946,62 01/12/2016 2.710,40 01/12/2016 31,20 28/12/2016 1.393,20 28/12/2016 2.436,40 28/12/2016 15,60 20/02/2017 1.068,39 20/02/2017 1.893,80 09/03/2017 2.731,50 09/03/2017 1.284,93 04/04/2017 2.612,80 04/04/2017 829,44 16/05/2017 1.672,92 16/05/2017 3.125,30 16/06/2017 1.852,40 16/06/2017 1.036,80 29/06/2017 3.194,80 29/06/2017 928,53 27/07/2017 2.791,10 27/07/2017 1.172,34 21/08/2017 901,53 21/08/2017 3.085,50 22/09/2017 2.707,90 22/09/2017 991,71 20/10/2017 3.541,20 20/10/2017 951,21 15/12/2017 3.445,00 15/12/2017 906,12 16/12/2017 892,62 18/12/2017 3.252,90 06/02/2018 3.380,80 06/02/2018 549,99 02/03/2018 3.539,90 02/03/2018 541,08 02/04/2018 2.948,00 02/04/2018 563,76 03/05/2018 522,99 04/05/2018 4.005,50 04/06/2018 509,76 04/06/2018 3.269,50 10/07/2018 491,67 10/07/2018 3.533,40 01/08/2018 383,40 01/08/2018 2.995,50 17/09/2018 464,67 17/09/2018 2.888,10 10/10/2018 437,67 10/10/2018 3.218,40 29/10/2018 3.806,10 29/10/2018 360,99 05/12/2018 568,62 05/12/2018 3.261,30 27/12/2018 3.708,90 27/12/2018 347,49 12/02/2019 3.800,10 12/02/2019 505,44 08/03/2019 3.495,30 08/03/2019 537,03 29/03/2019 3.840,00 29/03/2019 564,03 10/04/2019 424,17 10/04/2019 3.586,20 23/05/2019 3.309,90 23/05/2019 473,85 26/06/2019 500,86 26/06/2019 3.783,30 9.3. e apresentar cupom fiscal, cupom vinculado e/ou receitas médicas com irregularidades) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência), tendo as responsáveis ora recorrentes assumido todos os riscos envolvidos na prática do ato, pois era de se esperar delas a escorreita apresentação da documentação comprobatória de dispensações de medicamentos do Programa Farmácia Popular abrangendo o período de março de 2015 a junho de 2019 (infração aos arts. 22, 23, § 2o e 40; Salienta-se, por oportuno, não haver nos presentes autos elementos hábeis a comprovar a ocorrência de circunstâncias práticas, ainda que de ordem estrutural, a limitar ou condicionar a ação das responsáveis ora recorrentes na comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2015 a junho de 2019. 6.18. Diante desse contexto, e após exame de toda a documentação carreada aos autos, não há como se vislumbrar a boa-fé na conduta de Jocasta Rodrigues Meireles já que não foram constatados atos ou fatos atenuantes os quais pudessem apontar, desde 2019 (início da auditoria do Denasus), para atitude zelosa e diligente de Jocasta Rodrigues Meireles na apresentação de documentos para fins da plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2015 a junho de 2019. e) a boa-fé não deve ser presumida mas sim demonstrada e comprovada, fato que não ocorreu nos presentes autos, já que não foram constatados atos ou fatos atenuantes os quais pudessem apontar, desde 2019 (início da auditoria do Denasus), para atitude zelosa e diligente de Jocasta Rodrigues Meireles na apresentação de documentos para fins da plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2015 a junho de 2019.\n\nCicero Rodrigues da Silva e Sergio Vagner Muniz Rodrigues e da Farmácia Vitoria/Cicero Rodrigues da Silva e Cia Ltda., com fundamento no art. 16, III, \"\"b\"\" e \"\"c\"\", da Lei 8.443/1992, e condená-los, solidariamente, ao pagamento das quantias a seguir especificadas, atualizadas monetariamente e acrescidas de juros de mora, calculados a partir das datas especificadas até a data do efetivo recolhimento, fixando o prazo de 15 (quinze) dias, a contar da notificação, para que comprovem, perante o Tribunal (art. 214, III, \"\"a\"\", do RI/TCU), o recolhimento da dívida aos cofres do Fundo Nacional de Saúde, na forma da legislação em vigor: DATA DA OCORRÊNCIA VALOR ORIGINAL (R$) D/C 3/3/2015 1.611,09 D 3/3/2015 5.136,60 D 2/4/2015 4.048,38 D 2/4/2015 26,73 D 2/4/2015 11.348,40 D 5/5/2015 44,70 D 5/5/2015 1.858,95 D 5/5/2015 17.462,70 D 12/6/2015 13.457,40 D 12/6/2015 54,27 D 12/6/2015 19,20 D 7/7/2015 93,60 D 7/7/2015 136,08 D 7/7/2015 13,77 D 7/7/2015 43,20 D 7/7/2015 16.096,50 D 7/7/2015 633,42 D 7/7/2015 28,80 D 5/8/2015 33,60 D 5/8/2015 13,77 D 5/8/2015 20.768,40 D 5/8/2015 1.087,83 D 31/08/2015 13,77 D 31/8/2015 45,00 D 31/8/2015 23.265,00 D 31/8/2015 40,38 D 31/8/2015 40,80 D 31/8/2015 41,31 D 14/10/2015 40,80 D 14/10/2015 20.910,00 D 14/10/2015 19,20 D 15/10/2015 4.378,86 D 30/10/2015 25.261,20 D 5/11/2015 6.168,96 D 18/12/2015 24.409,80 D 18/12/2015 26,73 D 18/12/2015 47,40 D 18/12/2015 2,40 D 18/12/2015 494,79 D 9.3. Cicero Rodrigues da Silva e Sergio Vagner Muniz Rodrigues e à Farmácia Vitoria/Cicero Rodrigues da Silva e Cia Ltda., com fundamento no art. 57 da Lei 8.443/1992 c/c art. 267 do RI/TCU, multa no valor de R$ 56.000,00 (cinquenta e seis mil reais), fixando prazo de 15 (quinze) dias, a contar da notificação, para que comprovem, perante este Tribunal (art. 214, III, \"\"a\"\", do RI/TCU), o recolhimento da dívida aos cofres do Tesouro Nacional, atualizada monetariamente desde a data do presente acórdão até a do efetivo recolhimento, se for paga após o vencimento, na forma da legislação em vigor; 9.4. e de Cícero Rodrigues da Silva e Sergio Vagner Muniz Rodrigues, em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB), no período de 3/3/2015 a 18/12/2015. 2.1. (peça 83, p. 4) d) os medicamentos adquiridos, constantes das notas fiscais ora apresentadas, correspondem aos princípios ativos dos medicamentos fornecidos no âmbito do Programa Farmácia Popular do Brasil, de acordo com o disposto no artigo 6o, § 1o, da Portaria 111/GM-MS, de 28/1/2016, a garantia de disponibilidade de medicamentos pelo Programa Farmácia Popular do Brasil se dá sobre o princípio ativo, e não sobre a marca do medicamento; No relatório do Denasus, a irregularidade é descrita como \"\"registro de dispensação de medicamentos nos meses de janeiro a dezembro/2015, sem a comprovação da aquisição por meio de notas fiscais\"\" (peça 2, p. 5). DATA DA OCORRÊNCIA VALOR ORIGINAL (R$) D/C 2/4/2015 3.934,17 D 2/4/2015 26,73 D 2/4/2015 11.348,40 D 5/5/2015 44,70 D 5/5/2015 1.858,95 D 5/5/2015 17.462,70 D 12/6/2015 13.457,40 D 12/6/2015 54,27 D 12/6/2015 19,20 D 7/7/2015 93,60 D 7/7/2015 136,08 D 7/7/2015 13,77 D 7/7/2015 43,20 D 7/7/2015 16.096,50 D 7/7/2015 633,42 D 7/7/2015 28,80 D 5/8/2015 33,60 D 5/8/2015 13,77 D 5/8/2015 20.768,40 D 5/8/2015 1.087,83 D 31/08/2015 13,77 D 31/8/2015 45,00 D 31/8/2015 23.265,00 D 31/8/2015 40,38 D 31/8/2015 40,80 D 31/8/2015 41,31 D 14/10/2015 40,80 D 14/10/2015 20.910,00 D 14/10/2015 19,20 D 15/10/2015 4.378,86 D 30/10/2015 25.261,20 D 5/11/2015 6.168,96 D 18/12/2015 24.409,80 D 18/12/2015 26,73 D 18/12/2015 47,40 D 18/12/2015 2,40 D 18/12/2015 494,79 D b) dar ciência da decisão à recorrente, a Cicero Rodrigues da Silva, a Sergio Vagner Muniz, ao Fundo Nacional de Saúde e à Procuradoria da República no Estado da Bahia.\n\nDATA DA OCORRÊNCIA VALOR ORIGINAL (R$) DATA DA OCORRÊNCIA VALOR ORIGINAL (R$) DATA DA OCORRÊNCIA VALOR ORIGINAL (R$) 28/02/2014 70,34 14/01/2015 5.586,57 18/12/2015 44,15 28/02/2014 164,40 09/02/2015 136,80 18/12/2015 46,80 28/02/2014 11,40 09/02/2015 91,47 18/12/2015 26,73 28/02/2014 2,40 09/02/2015 7,20 18/12/2015 7.370,19 28/02/2014 2.673,00 09/02/2015 4,80 18/12/2015 88,80 28/02/2014 4.767,36 09/02/2015 6.816,15 18/12/2015 11.112,60 16/04/2014 185,10 09/02/2015 12.532,20 21/01/2016 24,00 16/04/2014 76,80 03/03/2015 4,80 21/01/2016 57,61 16/04/2014 70,80 03/03/2015 7,20 21/01/2016 7.248,69 16/04/2014 4.695,54 03/03/2015 21,60 21/01/2016 12.245,40 16/04/2014 3.555,09 03/03/2015 12,13 21/01/2016 53,46 12/05/2014 133,20 03/03/2015 162,90 21/01/2016 42,00 12/05/2014 235,80 03/03/2015 8.117,01 17/02/2016 140,40 12/05/2014 68,40 03/03/2015 12.079,20 17/02/2016 71,07 12/05/2014 259,20 02/04/2015 4,80 17/02/2016 10.171,17 12/05/2014 3.742,20 02/04/2015 12,13 17/02/2016 13.557,60 30/05/2014 385,80 02/04/2015 14,40 17/02/2016 120,00 30/05/2014 51,80 02/04/2015 7,20 17/02/2016 18,57 30/05/2014 82,80 02/04/2015 4,80 07/03/2016 110,40 30/05/2014 61,20 02/04/2015 24,30 07/03/2016 18,90 30/05/2014 4.250,07 02/04/2015 6.614,46 07/03/2016 4,80 30/05/2014 3.439,80 02/04/2015 11.434,80 07/03/2016 16.658,10 07/07/2014 175,20 05/05/2015 62,40 07/03/2016 49,20 07/07/2014 106,35 05/05/2015 7.699,05 09/03/2016 72,03 07/07/2014 26,40 05/05/2015 11.175,00 09/03/2016 360,90 07/07/2014 5.653,80 05/05/2015 4,80 09/03/2016 8.658,90 07/07/2014 54,00 05/05/2015 7,20 01/04/2016 10.353,90 07/07/2014 4.223,34 12/06/2015 7,20 01/04/2016 23,68 31/07/2014 499,50 12/06/2015 38,40 01/04/2016 72,90 31/07/2014 15,00 12/06/2015 37,20 01/04/2016 4,20 31/07/2014 5.771,40 12/06/2015 11.336,70 01/04/2016 25,20 31/07/2014 61,50 15/06/2015 13,77 01/04/2016 6,05 01/08/2014 192,50 15/06/2015 13,77 01/04/2016 46,20 01/08/2014 17,54 15/06/2015 6.786,18 01/04/2016 69,03 01/08/2014 4.651,02 03/07/2015 14,40 01/04/2016 6.762,96 01/09/2014 15,00 03/07/2015 13,46 29/04/2016 333,90 01/09/2014 1.277,70 03/07/2015 66,00 29/04/2016 85,82 01/09/2014 49,20 03/07/2015 133,65 29/04/2016 9,60 01/09/2014 6.579,60 03/07/2015 7,20 29/04/2016 16,27 09/09/2014 337,39 03/07/2015 64,80 29/04/2016 59,10 09/09/2014 26,73 03/07/2015 26,73 29/04/2016 9.813,60 09/09/2014 26,73 03/07/2015 6.199,74 29/04/2016 4.752,67 09/09/2014 4.062,96 03/07/2015 12.321,60 31/05/2016 272,40 01/10/2014 21,60 05/08/2015 128,40 31/05/2016 58,22 01/10/2014 192,60 05/08/2015 74,40 31/05/2016 4,20 01/10/2014 8.753,40 05/08/2015 11.489,40 31/05/2016 5,11 02/10/2014 4.784,67 06/08/2015 26,92 31/05/2016 111,90 02/10/2014 216,90 06/08/2015 7.989,84 31/05/2016 4.874,20 03/11/2014 7,20 31/08/2015 8.591,67 31/05/2016 9.886,80 03/11/2014 40,80 31/08/2015 37,20 30/06/2016 15,87 03/11/2014 100,32 31/08/2015 26,92 30/06/2016 4.532,50 03/11/2014 132,00 31/08/2015 298,80 30/06/2016 10.425,00 03/11/2014 9.423,00 31/08/2015 11.727,90 30/06/2016 77,70 03/11/2014 5.800,41 14/10/2015 46,80 30/06/2016 6,05 28/11/2014 27,54 14/10/2015 44,40 30/06/2016 28,20 28/11/2014 77,40 14/10/2015 37,20 03/08/2016 170,70 28/11/2014 7,20 14/10/2015 11.447,40 03/08/2016 46,06 28/11/2014 6.468,66 15/10/2015 30,69 03/08/2016 15,30 28/11/2014 40,20 15/10/2015 8.237,70 03/08/2016 4.965,45 28/11/2014 9.360,30 30/10/2015 30,69 03/08/2016 9.955,80 14/01/2015 8.042,10 30/10/2015 40,50 03/08/2016 118,80 14/01/2015 24,00 30/10/2015 88,80 03/08/2016 4,20 14/01/2015 54,00 30/10/2015 8.424,00 03/08/2016 6,05 14/01/2015 57,21 30/10/2015 12.007,50 03/08/2016 6,05 14/01/2015 202,80 18/12/2015 225,30 9.3. A presente TCE originou-se de constatações do Departamento Nacional de Auditoria do SUS (Denasus) em auditoria realizada entre 4/5/2017 e 11/8/2017, com a finalidade de avaliar a execução do PFPB junto ao estabelecimento comercial Drogaria Marotto Ltda., abrangendo o período de fevereiro de 2014 a agosto de 2016, com foco no cumprimento das normas estabelecidas pelas Portarias GM/MS 971/2012, vigente de 15/5/2012 a 27/1/2016, e 111/2016, vigente de 28/1/2016 a 27/9/2017;\n\njulgar irregulares as contas da Furrati Comércio de Medicamentos Ltda., além de Chirley Furrati e José Licelio Furrati, nos termos dos arts. 1o, I, 16, III, 'b' e 'c', com o § 2o, 'b', 19, caput , e 23, III, da Lei n.o 8.443, de 1992, para condená-los, solidariamente, ao pagamento do correspondente débito, com a atualização monetária e os juros de mora calculados desde as datas informadas até o efetivo recolhimento, fixando-lhes o prazo de 15 (quinze) dias, contados da notificação, para que comprovem perante o Tribunal, nos termos do art. 214, III, 'a', do RITCU, o recolhimento da dívida em favor do Fundo Nacional de Saúde sob as seguintes condições: aplicar a multa prevista no art. 57 da Lei n.o 8.443, de 1992, em desfavor da Furrati Comércio de Medicamentos Ltda., além de Chirley Furrati e José Licelio Furrati, individualmente, sob o respectivo valor de R$ 150.000,00 (cento e cinquenta mil reais), fixando-lhes o prazo de 15 (quinze) dias, contados da notificação, para que comprovem, perante o Tribunal, nos termos do art. 214, III, 'a', do RITCU, o recolhimento da dívida em favor do Tesouro Nacional, na forma da legislação em vigor; 9.4. Por esse acórdão, em linhas gerais, a prescrição subordina-se ao prazo geral de dez anos (CC, art. 205), contado, no caso de transferência de recursos não sujeita a prestação de contas específica, a partir da data da ocorrência do fato ilícito ou da consumação do dano e interrompido pelo ato que ordenar a citação, a audiência ou a oitiva da parte. 8.5. Como regra geral, ficou estabelecido que ' o termo inicial da contagem do prazo deve ser o da entrada do processo de fiscalização no âmbito do Tribunal de Contas, ou dos órgãos que, por lei, são encarregados pelo controle interno '. 13. No caso em questão, de qualquer forma, trata-se de irregularidades detectadas no exame da prestação de contas, em que o termo inicial do prazo prescricional começa a fluir a partir da ' competente comunicação para o órgão de controle interno ', que se evidenciou pela expedição do Relatório de Auditoria Denasus 17264, em 3/5/2017 (peça 4). O estabelecimento auditado apresentou Relação de Produtos da Farmácia Popular, com códigos de barra e posição de estoque 31/12/2013, cópias de imagens de telas referentes ao cadastro de medicamentos em um sistema de controle onde integra em um único código reduzido, vários códigos de barra (EAN), apresentou novamente o registro de inventário contendo termo de abertura com no 90056754766 como de registro na SEFAZ/RS, visando suprir a irregularidade apontada pela equipe de auditoria, entretanto os quantitativos informados na Relação quanto no Registro de Inventário, por estarem agrupados em um único código reduzido, são superiores aos quantitativos em relação às notas fiscais apresentadas e consideradas, portanto não foram acatados. Cabe esclarecer, neste momento, que a comprovação da aquisição, é por meio de notas fiscais, conforme determina o §§ 2o e 3o do Art. 23 e Art. 39 da Portaria MS/GM no 971, de 15 de maio de 2012, sendo consideradas as notas fiscais de aquisições de medicamentos e/ou correlatos cujo (EAN) Código de Barra do medicamento corresponda ao (EAN) do medicamento auditado. No tocante à dosimetria e possível falta de proporcionalidade e razoabilidade da multa aplicada aos recorrentes, tem-se que, ' na aplicação de sanções, o TCU deve considerar a natureza e a gravidade da infração, os danos que delas provieram para a Administração Pública, as circunstâncias agravantes ou atenuantes e os antecedentes do agente, nos termos do art. 22, § 2o, do Decreto-lei 4.657/1942 (Lei de Introdução às Normas do Direito Brasileiro) ' ( Acórdão 2463/2019-1a Câmara , relator Bruno Dantas). 12.\n\nClaucir Caetano da Silva, com fundamento no art. 57 da Lei 8.443/1992, c/c art. 267 do RI/TCU, multa no valor de R$ 45.000,00 (quarenta e cinco mil reais), fixando prazo de 15 (quinze) dias, a contar da notificação, para que comprove, perante este Tribunal (art. 214, III, \"\"a\"\", do RI/TCU), o recolhimento da dívida aos cofres do Tesouro Nacional, atualizada monetariamente desde a data do presente acórdão até a do efetivo recolhimento, se for paga após o vencimento, na forma da legislação em vigor; 9.4. autorizar, desde logo, se requerido, com fundamento no art. 26, da Lei 8.443/1992, c/c o art. 217, §§ 1o e 2o, do RI/TCU, o parcelamento das dívidas em até 36 parcelas, incidindo, sobre cada parcela, corrigida monetariamente, os correspondentes acréscimos legais, fixando-lhes o prazo de 15 (quinze) dias, a contar do recebimento da notificação, para comprovar, perante o Tribunal, o recolhimento da primeira parcela, e de 30 (trinta) dias, a contar da parcela anterior, para comprovar o recolhimento das demais parcelas, devendo incidir, sobre cada valor mensal, atualizado monetariamente, os juros de mora devidos, no caso do débito, na forma prevista na legislação em vigor, alertando o responsável de que a falta de comprovação do pagamento de qualquer parcela importará o vencimento antecipado do saldo devedor, nos termos do § 2o do art. 217, do Regimento Interno deste Tribunal; 9.5. Cuidam os autos de tomada de contas especial instaurada pelo Fundo Nacional de Saúde (FNS/MS), em desfavor do empresário individual Claucir Caetano da Silva - em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB), no período de 14/3/2013 a 6/7/2015. 2.1. Dessa forma, a Portaria 111/2016 foi revogada e teve seu texto consolidado na Portaria de Consolidação 5, de 28/9/2017, Seção III, Anexo LXXVII, que passou a regulamentar o Programa Farmácia Popular a partir dessa data . 2.3 A presente TCE originou-se de constatações do Departamento Nacional de Auditoria do SUS (Denasus) em auditoria realizada entre 10/10/2016 e 17/2/2017, com a finalidade de avaliar a execução do PFPB pelo empresário individual Claucir Caetano da Silva, abrangendo o período de março de 2013 a julho de 2015, com foco no cumprimento das normas estabelecidas pela Portaria GM/MS 971/2012, vigente de 15/5/2012 a 27/1/2016; a) registro de medicamentos e/ou correlatos do PFPB, pela empresa Claucir Caetano da Silva ME, no período de 2013 a junho de 2015, com comprovação parcial de aquisição, por meio de notas fiscais (Constatação 460482), no valor de R$ 96.108,78 (peça 1, p. 7-9); j) poder-se-ia comprovar que os medicamentos adquiridos, constantes das notas fiscais aduzidas pelo recorrente corresponderiam aos princípios ativos dos medicamentos fornecidos no âmbito do PFPB, conforme art. 6o, § 1o, da Portaria GM/MS 111, de 28/1/2016 (a garantia de disponibilidade de medicamentos pelo PFPB ocorreria em função do princípio ativo e não sobre a marca do medicamento) - peça 70, p. 4; Quanto à alegação de que poder-se-ia comprovar que os medicamentos adquiridos, constantes das notas fiscais aduzidas pelo recorrente corresponderiam aos princípios ativos dos medicamentos fornecidos no âmbito do PFPB, conforme art. 6o, § 1o, da Portaria GM/MS 111, de 28/1/2016 (a garantia de disponibilidade de medicamentos pelo PFPB ocorreria em função do princípio ativo e não sobre a marca do medicamento); e apresentação de cupom fiscal, vinculado e/ou receitas médicas com irregularidades) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência), tendo o responsável ora recorrente assumido todos os riscos envolvidos na prática do ato, pois era de se esperar dele a plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2013 a julho de 2015 (infração aos arts. 21, 22, 23, 39 e 40 da Portaria GM/MS 971/2012). 6.16. já que não foram constatados atos ou fatos atenuantes os quais pudessem apontar, desde 2013, para atitude zelosa e diligente de Claucir Caetano da Silva na apresentação de documentos para fins da plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2013 a julho de 2015.\n\nautorizar, desde logo, e com fundamento no art. 26, da Lei 8.443/1992 c/c o art. 217, do Regimento Interno do TCU, caso seja do interesse dos responsáveis, o parcelamento das dívidas em até 36 (trinta e seis) parcelas, devendo incidir, sobre cada uma delas, os encargos legais devidos, sem prejuízo de alertá-los de que, caso optem por essa forma de pagamento, a falta de comprovação do recolhimento de qualquer parcela implicará o vencimento antecipado do saldo devedor, nos termos do art. 26, parágrafo único, e 59, da Lei 8.443/1992 c/c o art. 217, § 2o, do Regimento Interno do TCU; 9.7. Cuidam os autos de tomada de contas especial instaurada pelo Fundo Nacional de Saúde (FNS/MS), em desfavor do estabelecimento comercial Maranata Drogaria e Perfumaria Menor Preço Ltda., solidariamente com Taygoro Ribeiro Alves Oliveira e Ezequiel Ribeiro Alves, em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB), no período de 3/3/2015 a 15/10/2015. 2.1. A presente TCE originou-se de constatações do Departamento Nacional de Auditoria do SUS (Denasus) em auditoria realizada entre 31/10/2016 e 30/6/2018, com a finalidade de avaliar a execução do PFPB junto à Maranata Drogaria e Perfumaria Menor Preço Ltda., abrangendo o período de março de 2015 a outubro de 2015, com foco no cumprimento das normas estabelecidas pela Portaria GM/MS 971/2012, vigente de 15/5/2012 a 27/1/2016; Ao assumir voluntariamente o encargo da gestão de recursos do PFPB, o particular se submete à obrigação de prestar contas (art. 70, parágrafo único, da Constituição Federal) e a eventual responsabilização em caso de mau uso dos recursos geridos (art. 71, inciso II, da Lei Maior) - Acórdão 981/2022-TCU-1a Câmara , rel. Não se trata de meros erros procedimentais cometidos pelo apelante, mas irregularidades ensejadoras de dano ao erário, porquanto não restou comprovada a boa e regular aplicação dos recursos do SUS no âmbito do PFPB no período de março de 2015 a outubro de 2015. 7.4. Insta consignar que o recorrente não trouxe aos autos qualquer documento que comprove a boa e regular aplicação dos recursos do SUS no âmbito do PFPB no período de março de 2015 a outubro de 2015. 7.5. Ao assumir voluntariamente o encargo da gestão de recursos do PFPB, o particular se submete à obrigação de prestar contas (art. 70, parágrafo único, da Constituição Federal) e a eventual responsabilização em caso de mau uso dos recursos geridos (art. 71, inciso II, da Lei Maior) - Acórdão 981/2022-TCU-1a Câmara , rel. e não apresentação de cópia do cupom fiscal, vinculado e/ou receitas médicas solicitados) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência), tendo o responsável ora recorrente assumido todos os riscos envolvidos na prática do ato, pois era de se esperar dele a plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2015 e outubro de 2015 (infração aos arts. 21, 22, 23, 39 e 40 da Portaria GM/MS 971/2012). 7.19. Salienta-se, por oportuno, não haver nos presentes autos elementos hábeis a comprovar a ocorrência de circunstâncias práticas, ainda que de ordem estrutural, a limitar ou condicionar a ação do responsável ora recorrente na plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2015 e outubro de 2015. 7.21. já que não foram constatados atos ou fatos atenuantes os quais pudessem apontar, desde 2015, para atitude zelosa e diligente de Taygoro Ribeiro Alves Oliveira na apresentação de documentos para fins da plena comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de março de 2015 a outubro de 2015. 8.4.\n\ncondenar os responsáveis identificados no subitem anterior, com fundamento no art. 19, caput , da Lei 8.443/1992, c/c art. 210 do RI/TCU, solidariamente, ao pagamento das quantias a seguir especificadas, com a fixação do prazo de 15 (quinze) dias, a contar da notificação, para comprovar, perante o Tribunal, em respeito ao art. 23, inciso III, alínea 'a', da Lei 8.443/1992, c/c 214, inciso III, alínea 'a', do RI/TCU, o recolhimento da dívida aos cofres do Fundo Nacional de Saúde, atualizada monetariamente e acrescida dos juros de mora, calculados a partir das datas discriminadas, até a data do recolhimento, na forma prevista na legislação em vigor: DATA DA OCORRÊNCIA VALOR ORIGINAL (R$) D/C 28/02/2014 1.059,89 D 28/02/2014 9.140,50 D 16/04/2014 1.699,32 D 16/04/2014 9.313,86 D 12/05/2014 4.440,60 D 12/05/2014 518,34 D 30/05/2014 4.772,60 D 07/07/2014 6.800,84 D 07/07/2014 949,81 D 31/07/2014 8.981,66 D 01/08/2014 1.216,02 D 01/09/2014 9.906,68 D 09/09/2014 2.022,24 D 01/10/2014 9.406,52 D 02/10/2014 1.082,16 D 03/11/2014 10.463,21 D 03/11/2014 1.225,59 D 03/11/2014 69,60 D 28/11/2014 1.827,00 D 01/12/2014 11.883,80 D 14/01/2015 2.113,37 D 14/01/2015 13.804,80 D 09/02/2015 11.949,16 D 09/02/2015 2.299,98 D 03/03/2015 12.306,90 D 03/03/2015 3.633,50 D 03/03/2015 222,81 D 03/03/2015 1.094,47 D 03/03/2015 824,59 D 03/03/2015 13,46 D 03/03/2015 53,65 D 03/03/2015 253,12 D 03/03/2015 48,70 D 02/04/2015 1.622,43 D 02/04/2015 6.923,06 D 05/05/2015 1.632,23 D 05/05/2015 5.289,80 D 12/06/2015 4.720,28 D 15/06/2015 850,50 D 03/07/2015 4.088,40 D 06/07/2015 648,81 D 31/08/2015 4.444,40 D 31/08/2015 137,70 D 14/10/2015 708,21 D 14/10/2015 5.196,50 D 30/10/2015 1.192,20 D 30/10/2015 6.972,18 D 18/12/2015 3.556,53 D 18/12/2015 8.945,08 D 21/01/2016 4.057,42 D 21/01/2016 10.558,28 D 17/02/2016 4.036,56 D 17/02/2016 10.047,48 D 9.4. (06.276.004/0001-83) e aos responsáveis Gabriel Gaban Rorato (XXX.553.089-XX) e Rita de Cassia Gaban Rorato (XXX.637.589-XX) multa individual, fundada no art. 57 da Lei 8.443/1992, c/c o art. 267 do Regimento Interno, no valor de R$ 20.000,00 (vinte mil reais), fixando-lhes o prazo de 15 (quinze) dias, a contar da notificação, para que comprovem, perante o Tribunal (art. 214, inciso III, alínea 'a' do Regimento Interno), o recolhimento da dívida aos cofres do Tesouro Nacional, atualizada monetariamente desde a data deste acórdão até a do efetivo recolhimento, se for paga após o vencimento, na forma da legislação em vigor; 9.5. em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB), no período de 28/2/2014 a 17/2/2016, o que teria ocasionado um prejuízo de R$ 231.026,80, em valores históricos, aos cofres do FNS. 2.1. com a finalidade de avaliar a execução do PFPB junto à Farmácia São José/Farmácia Rorato Ltda., abrangendo o período de janeiro de 2014 a janeiro de 2016, com foco no cumprimento das normas estabelecidas pela Portaria 971/MS/GM, de 15/5/2012, vigente de 15/5/2012 a 27/1/2016, e Portaria GM/MS no 111/2016, vigente a partir de 28/1/2016; a) registro de dispensação de medicamentos do PFPB, no período de janeiro de 2014 a janeiro de 2016, sem comprovação total de estoque, no valor original de R$ 228.446,40; Em face da revelia da revelia de Farmácia Rorato Ltda., Gabriel Gaban Rorato, e Rita de Cássia Gaban Rorato, esta Corte de Contas deliberou, por meio do Acórdão 997/2022-TCU-1a Câmara : Com efeito, o prazo de prescrição começou a correr em 7/12/2018, data do Relatório de Auditoria do Denasus (peças 2-4), correspondente à data do conhecimento da irregularidade ou do dano, quando constatados em fiscalização realizada pelo órgão de controle interno (art. 4o, inciso IV, da Resolução-TCU 344/2022). e apresentação de cupom fiscal, vinculado e/ou receitas médicas com irregularidades) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência), tendo os responsáveis ora recorrentes assumido todos os riscos envolvidos na prática do ato, pois era de se esperar deles a comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de janeiro de 2014 a janeiro de 2016 (infração aos arts. 17, 20, incisos III, IV, VIII, XI e XIV, 21, 22, 23, §§ 1o, 2o e 3o e inciso II, 24, 27, 28, e 39, caracterizando o art. 40, incisos I, II, IV, XIII, XIV, XV, XVI e XVIII da Portaria GM/MS 971/2012;\n\nDATA DA OCORRÊNCIA VALOR ORIGINAL DOS DÉBITOS (R$) 31/07/2014 3.855,20 31/07/2014 4,80 01/08/2014 3.341,25 01/08/2014 10,22 01/09/2014 4.014,90 01/09/2014 185,20 09/09/2014 2.993,76 01/10/2014 3.924,40 01/10/2014 93,60 02/10/2014 2.967,03 03/11/2014 855,36 03/11/2014 4.048,70 03/11/2014 53,46 03/11/2014 140,40 28/11/2014 3.902,58 28/11/2014 5,11 01/12/2014 4.167,60 01/12/2014 55,40 14/01/2015 5.462,50 14/01/2015 3.501,63 09/02/2015 9.455,00 09/02/2015 4.276,80 09/02/2015 14,40 03/03/2015 5.586,57 03/03/2015 13.629,70 03/03/2015 14,40 02/04/2015 6.094,44 02/04/2015 15.271,80 02/04/2015 23,70 05/05/2015 21.300,80 05/05/2015 7.438,20 05/05/2015 54,00 12/06/2015 17.496,10 12/06/2015 103,80 15/06/2015 5.952,26 03/07/2015 13.219,60 03/07/2015 40,20 06/07/2015 4.544,10 06/07/2015 13,77 9.4. - ME, doravante tratada como Drogaria Crestani Ltda - ME, solidariamente com Douglas Crestani e Simone Crestani, na condição de sócios da referida sociedade empresária, em razão da aplicação irregular dos recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB), no período de junho/2014 a maio/2015. 2.1. Registra-se que as normas do Gabinete do Ministro da Saúde, que haviam sido publicadas no período de 1990 até 28 de setembro de 2017, foram consolidadas em seis Portarias de Consolidação (PRC). e c) registro de dispensação de medicamento em nome de funcionário do estabelecimento auditado sem a apresentação da documentação de regularidade, no valor original de R$ 46,80 (peça 6, p. 9-10). 2.4. - ME, de Douglas Crestani e de Simone Crestani, na condição de sócios administradores da empresa, em virtude da: Em face da revelia de Douglas Crestani e da rejeição das alegações de defesa de Simone Crestani e da empresa Drogaria Crestani Ltda. Com efeito, o prazo de prescrição começou a correr em 7/11/2016, data do Relatório de Auditoria do Denasus (peças 6-11), correspondente à data do conhecimento da irregularidade ou do dano, quando constatados em fiscalização realizada pelo órgão de controle interno (art. 4o, inciso IV, da Resolução-TCU 344/2022). De início, cabe salientar que o princípio da independência das instâncias possibilita que o TCU decida de forma autônoma sobre as questões que lhes são afetas, sem a necessária vinculação às eventuais manifestações judiciais, salvo sentença penal transitada em julgado que negue a existência do fato ou sua autoria ( Acórdão 2904/2014-TCU-Plenário , rel. Insta consignar que incide sobre o gestor o ônus da prova quanto à regular aplicação dos valores que lhe foram confiados para consecução do objeto pactuado, o que decorre de expressa disposição contida no parágrafo único do art. 70 da Constituição Federal, bem assim do disposto no art. 93 do Decreto-Lei 200/1967, c/c o art. 66 do Decreto 93.872/1986 ( Acórdãos 2.436/2015-TCU-Plenário , 7.778/2015-TCU-1a Câmara, 3.971/2015-TCU-1a Câmara, 3.713/2015-TCU-1a Câmara e 4.649/2015-TCU-2a Câmara). 6.7. No que concerne à questão da responsabilidade subjetiva com base na Lei 13.655/2018 (Lei de Introdução às Normas do Direito Brasileiro - LINDB), cabe assinalar que as alterações promovidas pela norma legal, em especial a inclusão do art. 28, não provocam modificação nos requisitos necessários à responsabilidade financeira pelo débito - o dever de indenizar os prejuízos ao erário permanece sujeito à comprovação de dolo ou culpa ( Acórdãos 2391/2018-TCU-Plenário , rel. e registro de dispensação de medicamentos sem apresentação de cupom vinculado e receita) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência), tendo os responsáveis ora recorrentes assumido todos os riscos envolvidos na prática do ato, pois era de se esperar deles a comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de junho/2014 a maio/2015 (infração aos arts. 22, 23, §§ 2o e 3o, 39, caracterizando o art. 40, inciso I, da Portaria GM/MS 971/2012). 6.11. Salienta-se, por oportuno, não haver nos presentes autos elementos hábeis a comprovar a ocorrência de circunstâncias práticas, ainda que de ordem estrutural, a limitar ou condicionar a ação dos responsáveis ora recorrentes na comprovação da boa e regular aplicação dos recursos aplicados na execução do PFPB abrangendo o período de junho/2014 a maio/2015. 6.13.",
+  "achados_text": "Principais achados\n\nCategoria: Irregularidades PFPB — Achado: Dispensação irregular de medicamentos no Programa Farmácia Popular, sem comprovação adequada; Evidências: \"registro de dispensação de medicamentos sem notas fiscais que comprovem a aquisição e não apresentação de cópia do cupom fiscal, cupom vinculado e/ou receitas médicas solicitados\"; Impacto: Dano ao erário e possível desvio de recursos; Período: 03/11/2014 a 17/02/2016; Valores: R$ 91.346,03 (dano histórico); Determinações: Condenação ao pagamento de débitos, atualização monetária e juros de mora.\n\nCategoria: Responsabilidade — Achado: Responsabilidade por culpa grave na execução do PFPB; Evidências: \"as ilegalidades cometidas (...) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência)\"; Impacto: Improbidade administrativa e prejuízo ao erário; Período: Diversos, conforme cada caso; Valores: Débitos a serem apurados; Determinações: Condenação ao pagamento de débitos, atualização monetária e juros de mora.\n\nCategoria: TCEs — Achado: Grande número de Tomadas de Contas Especiais (TCEs) relacionadas ao Programa Farmácia Popular; Evidências: \"313 processos de TCE, correspondente ao montante de débito apurado de R$ 116.213.725,10\"; Impacto: Indícios de falhas na gestão e fiscalização do programa; Período: 2017 a 2022; Valores: R$ 116.213.725,10; Determinações: Análise e julgamento das TCEs.\n\nCategoria: Parcelamento — Achado: Possibilidade de parcelamento de dívidas; Evidências: \"parcelamento das dívidas em até 36 parcelas, incidindo, sobre cada parcela, corrigida monetariamente, os correspondentes acréscimos legais\"; Impacto: Facilitação do ressarcimento ao erário; Período: Não especificado; Valores: Débitos a serem parcelados; Determinações: Concessão de parcelamento, se solicitado e cumpridas as condições.\n\nPrincipais fragilidades\n\nCategoria: Documentação — Fragilidade: Falta de apresentação e/ou inadequação da documentação comprobatória das dispensações; Evidências: \"não apresentação de cópia do cupom fiscal, cupom vinculado e/ou receitas médicas solicitados\"; Risco: Impossibilidade de comprovar a regularidade das despesas e desvio de recursos; Unidade/Programa: Programa Farmácia Popular; Período: Diversos, conforme cada caso; Valores: Débitos a serem apurados; Recomendação: Reforçar a exigência e fiscalização da documentação comprobatória.\n\nCategoria: Controles Internos — Fragilidade: Ineficiência dos controles internos na prevenção e detecção de irregularidades; Evidências: \"as ilegalidades cometidas (...) foram praticadas, no mínimo, com culpa grave (por negligência e/ou imprudência)\"; Risco: Aumento das perdas financeiras e comprometimento da imagem do programa; Unidade/Programa: Programa Farmácia Popular; Período: Diversos, conforme cada caso; Valores: Débitos a serem apurados; Recomendação: Implementar e fortalecer os controles internos.\n\nCategoria: Monitoramento — Fragilidade: Necessidade de aprimorar o monitoramento do programa; Evidências: \"processo de monitoramento do Acórdão 2.074/2015-TCU-Plenário\"; Risco: Dificuldade em identificar e corrigir as falhas no programa; Unidade/Programa: Programa Farmácia Popular; Período: Em andamento; Valores: Não especificado; Recomendação: Intensificar o monitoramento e a fiscalização.\n"
+}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-cgu">
+        <thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-tcu">
+        <thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3ª Seção -->
+  <div class="card section">
+    <h2>Achados/Fragilidades TCU</h2>
+    <div id="achados" class="achados"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Helpers */
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+  function escapeRegExp(s){return String(s).replace(/[-\/^$*+?.()|[\]{}]/g,'\\$&');}
+  function getYearFromDateStr(s){var m=String(s||'').match(/\b(\d{4})\b/);return m?m[1]:'';}
+  function textOrEmpty(v){return (v===0? '0' : (v==null? '' : String(v)));}
+
+  // Lê seed
+  var seed = {resumo:'', cgu_tabela:[], tcu_tabela:[], achados_text:''};
+  try{ seed = JSON.parse(document.getElementById('seed').textContent||'{}'); }catch(e){}
+
+  // Realce de termos pesquisados
+  var themeMatch=(seed.resumo||'').match(/"([^"]+)"/);
+  var SEARCH_PHRASE=themeMatch?themeMatch[1].trim():'';
+  var STOP=new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que','di','du']);
+  var TERMS=(SEARCH_PHRASE?SEARCH_PHRASE.split(/\s+/):[]).filter(function(w){return w && w.length>=2 && !STOP.has(norm(w));});
+  var DIA={'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  function diacriticPart(s){return s.split('').map(function(ch){var lc=ch.toLowerCase();if(DIA[lc])return DIA[lc]; if(/\s/.test(ch))return '\\s+'; return escapeRegExp(ch);}).join('');}
+  function buildSearchRegex(){var parts=[]; if(SEARCH_PHRASE)parts.push(diacriticPart(SEARCH_PHRASE)); TERMS.forEach(function(t){parts.push(diacriticPart(t));}); if(!parts.length)return null; return new RegExp('(?:^|\\b)(' + parts.join('|') + ')(?=\\b|$)','gi');}
+  var SEARCH_RE = buildSearchRegex();
+  function highlightBold(txt){var s=textOrEmpty(txt); if(!SEARCH_RE) return s; return s.replace(SEARCH_RE, function(m){return '<b class="hl">'+m+'</b>';});}
+
+  // Título/resumo
+  document.title='Painel de '+(SEARCH_PHRASE?SEARCH_PHRASE:'Auditoria');
+  document.getElementById('titulo').textContent=document.title;
+  document.getElementById('resumo').textContent=textOrEmpty(seed.resumo);
+
+  // Mapeia tabelas
+  var CGU=(seed.cgu_tabela||[]).map(function(x){
+    return {_src:'CGU', Titulo:textOrEmpty(x['Título']), Data:textOrEmpty(x['Data']),
+            UF:(x.hasOwnProperty('UF')?x['UF']:''), Unidade:textOrEmpty(x['Unidade Auditada']),
+            Orgao:textOrEmpty(x['Órgão']||'CGU'), Tipo:textOrEmpty(x['Tipo de Serviço']), Link:textOrEmpty(x['Link'])};
+  });
+  var TCU=(seed.tcu_tabela||[]).map(function(x){
+    return {_src:'TCU', Ano:textOrEmpty(x['Ano']), Assunto:textOrEmpty(x['Assunto']),
+            Link:(x.hasOwnProperty('Link')?x['Link']:''), Orgao:textOrEmpty(x['Órgão']||'TCU')};
+  }).sort(function(a,b){return (parseInt(b.Ano||0,10)||0)-(parseInt(a.Ano||0,10)||0);});
+
+  // Totais
+  document.getElementById('cgu-tot').textContent=CGU.length;
+  document.getElementById('tcu-tot').textContent=TCU.length;
+
+  // Filtros
+  var fTxt=document.getElementById('f-texto'), fAno=document.getElementById('f-ano'), fUF=document.getElementById('f-uf'), fOrg=document.getElementById('f-orgao');
+  var yearSet={}; CGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(y) yearSet[y]=true;}); TCU.forEach(function(r){var y=r.Ano; if(y) yearSet[y]=true;});
+  Object.keys(yearSet).sort(function(a,b){return b-a;}).forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;fAno.appendChild(o);});
+  var ufSet={}; CGU.forEach(function(r){var u=(r.UF!=null && r.UF!=='N/A')?String(r.UF):''; if(u) ufSet[u]=true;});
+  Object.keys(ufSet).sort().forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=u;fUF.appendChild(o);});
+
+  var cguBody=document.querySelector('#tbl-cgu tbody');
+  var tcuBody=document.querySelector('#tbl-tcu tbody');
+
+  function renderTables(rowsCGU,rowsTCU){
+    // CGU
+    cguBody.innerHTML='';
+    if(!rowsCGU.length){var tr=document.createElement('tr');var td=document.createElement('td');
+      td.colSpan=6;td.className='no-results';td.textContent='Nenhum registro para exibir.';tr.appendChild(td);cguBody.appendChild(tr);
+    }else{
+      rowsCGU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+highlightBold(r.Titulo)+'</td><td>'+r.Data+'</td><td>'+r.UF+'</td><td>'+r.Unidade+'</td><td>'+r.Tipo+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        cguBody.appendChild(tr);
+      });
+    }
+    // TCU
+    tcuBody.innerHTML='';
+    if(!rowsTCU.length){var tr2=document.createElement('tr');var td2=document.createElement('td');
+      td2.colSpan=3;td2.className='no-results';td2.textContent='Nenhum registro para exibir.';tr2.appendChild(td2);tcuBody.appendChild(tr2);
+    }else{
+      rowsTCU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.Ano+'</td><td>'+highlightBold(r.Assunto)+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        tcuBody.appendChild(tr);
+      });
+    }
+  }
+
+  // Gráficos
+  var bar=document.getElementById('bar'), pie=document.getElementById('pie');
+  var barLegend=document.getElementById('bar-legend'), pieLegend=document.getElementById('pie-legend');
+  function drawBar(rowsCGU,rowsTCU){
+    var ctx=bar.getContext('2d'); ctx.clearRect(0,0,bar.width,bar.height); barLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].CGU++;});
+    rowsTCU.forEach(function(r){var y=r.Ano; if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].TCU++;});
+    var labels=Object.keys(agg).sort(function(a,b){return a-b;});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',bar.width/2,bar.height/2);return;}
+    var pad={t:20,r:16,b:40,l:28}, w=bar.width-pad.l-pad.r, h=bar.height-pad.t-pad.b, max=1;
+    labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});
+    ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();
+    ctx.fillStyle='#555';ctx.textAlign='right';
+    for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}
+    var groupW=w/labels.length, barW=Math.max(8,groupW*0.35);
+    var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu')||'#0a9396';
+    var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu')||'#94d2bd';
+    labels.forEach(function(y,i){
+      var x=pad.l+i*groupW+groupW/2;
+      var hCGU=(agg[y].CGU/max)*h, hTCU=(agg[y].TCU/max)*h;
+      ctx.fillStyle=String(cguColor).trim(); ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);
+      ctx.fillStyle=String(tcuColor).trim(); ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);
+      ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);
+    });
+    function leg(color,text){var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+color+'"></span>'+text;barLegend.appendChild(d);}
+    leg(String(cguColor).trim(),'CGU'); leg(String(tcuColor).trim(),'TCU');
+  }
+  function drawPie(rowsCGU){
+    var ctx=pie.getContext('2d'); ctx.clearRect(0,0,pie.width,pie.height); pieLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var u=r.UF||'N/A'; agg[u]=(agg[u]||0)+1;});
+    var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',pie.width/2,pie.height/2);return;}
+    var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];
+    var total=labels.reduce(function(s,k){return s+agg[k];},0);
+    var start=-Math.PI/2, cx=pie.width/2, cy=pie.height/2, r=Math.min(cx,cy)-14;
+    labels.forEach(function(label,i){
+      var val=agg[label], ang=(val/total)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+ang); ctx.closePath(); ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+      var pct=((val/total)*100).toFixed(1)+'%';
+      var d=document.createElement('div'); d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';
+      pieLegend.appendChild(d); start+=ang;
+    });
+  }
+
+  function apply(){
+    var txt=norm(document.getElementById('f-texto').value);
+    var ano=document.getElementById('f-ano').value;
+    var uf=document.getElementById('f-uf').value;
+    var org=document.getElementById('f-orgao').value;
+
+    function passCGU(r){
+      if(org && org!=='CGU') return false;
+      if(uf && String(r.UF)!==String(uf)) return false;
+      var y=getYearFromDateStr(r.Data); if(ano && y!==ano) return false;
+      if(txt){var hay=norm([r.Titulo,r.Data,r.UF,r.Unidade,r.Orgao,r.Tipo].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+    function passTCU(r){
+      if(org && org!=='TCU') return false;
+      if(ano && String(r.Ano)!==String(ano)) return false;
+      if(txt){var hay=norm([r.Ano,r.Assunto,r.Link,r.Orgao].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+
+    var c=CGU.filter(passCGU), t=TCU.filter(passTCU);
+    document.getElementById('cgu-vis').textContent=c.length;
+    document.getElementById('tcu-vis').textContent=t.length;
+    renderTables(c,t); drawBar(c,t); drawPie(c);
+  }
+
+  // Render inicial
+  renderTables(CGU,TCU); drawBar(CGU,TCU); drawPie(CGU);
+  document.getElementById('cgu-vis').textContent=CGU.length;
+  document.getElementById('tcu-vis').textContent=TCU.length;
+  ['f-texto','f-ano','f-uf','f-orgao'].forEach(function(id){
+    var el=document.getElementById(id); el.addEventListener('input',apply); el.addEventListener('change',apply);
+  });
+
+  // ---- 3ª Seção: formata markdown leve do LLM ----
+  function mdLiteToHtml(src){
+    var s = String(src||'');
+    // escape básico
+    s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // **bold** e *itálico*
+    s = s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    s = s.replace(/\*(.+?)\*/g,'<i>$1</i>');
+    // listas iniciadas por "- "
+    if (/^\s*-\s+/m.test(s)) {
+      s = s.replace(/^(\s*-\s+.+)(?:\n(\s*-\s+.+))*?/gms, function(block){
+        const items = block.split(/\n/).map(l=>l.replace(/^\s*-\s+/,'').trim()).filter(Boolean);
+        return '<ul>'+items.map(it=>'<li>'+it+'</li>').join('')+'</ul>';
+      });
+    }
+    // parágrafos / quebras
+    s = s.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+    return '<p>'+s+'</p>';
+  }
+  var achadosHtml = seed.achados_text && seed.achados_text.trim() ? mdLiteToHtml(seed.achados_text) : '<p class="no-results">Sem conteúdo.</p>';
+  document.getElementById('achados').innerHTML = achadosHtml;
+})();
+</script>
+
+</body>
+</html>
