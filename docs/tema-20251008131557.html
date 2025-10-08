@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box} body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px} #resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.filters label{font-weight:600;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1} tbody tr:nth-child(even){background:#fafbfc} tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap} a.link:hover{text-decoration:underline}
+.no-results{padding:18px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+/* 3ª seção — melhor formatação do texto do LLM (markdown leve) */
+.achados{line-height:1.55;color:#222}
+.achados p{margin:0 0 10px}
+.achados ul{margin:0 0 10px 18px}
+.achados li{margin:3px 0}
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SEED: JSON do workflow -->
+<script id="seed" type="application/json">{
+  "resumo": "Exibindo os itens mais relevantes por fonte para \"desenvolvimento produtivo saude\".",
+  "cgu_tabela": [
+    {
+      "Título": "Relatório 1117968 - Aplicação de recursos federais na área de saúde do município de Pombos (PE): colaboração do Instituto de Desenvolvimento Humano (IDH)",
+      "Data": "27/11/2024",
+      "UF": "PE",
+      "Unidade Auditada": "Fundo Nacional de Desenvolvimento da Educação;Diretoria-Executiva do Fundo Nacional de Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1329129"
+    },
+    {
+      "Título": "Relatório 1495748 - Contratação de consultores pela Agência para o Desenvolvimento da Atenção Primária à Saúde - ADAPS",
+      "Data": "21/08/2024",
+      "UF": "DF",
+      "Unidade Auditada": "Ministério da Saúde;Agência Brasileira de Apoio à Gestão do Sistema Único de Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1557681"
+    },
+    {
+      "Título": "RDE 00213.000138-2012-55- Educação Saúde e Desenvolvimento Agrário - Anapu-PA",
+      "Data": "16/09/2016",
+      "UF": "PA",
+      "Unidade Auditada": "Fundação Nacional de Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/862014"
+    },
+    {
+      "Título": "RDE 00190.034609/2010-72 Desenvolvimento Agrário e Saúde - Cotriguaçu/MT",
+      "Data": "16/09/2016",
+      "UF": "MT",
+      "Unidade Auditada": "Fundação Nacional de Saúde",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/863305"
+    }
+  ],
+  "tcu_tabela": [
+    {
+      "Ano": "2047",
+      "Assunto": "Solicitação do Congresso Nacional ao TCU para que seja avaliada a regularidade das Parcerias para o Desenvolvimento Produtivo (PDPs) nos laboratórios das Forças Armadas, nos últimos 10 anos.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=802189",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2025",
+      "Assunto": "Pedido de reexame contra acórdão prolatado em acompanhamento que tem por objeto as Parcerias para o Desenvolvimento Produtivo (PDP) firmadas no âmbito do Ministério da Saúde.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=853114",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Pedido de reexame contra acórdão que apreciou monitoramento de deliberação que tratou de representação a respeito de irregularidades ocorridas em propostas de projeto de Parceria para o Desenvolvimento Produtivo (PDP) para os insumos farmacêuticos ativos (IFA) Entricitabina + Tenofovir.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860913",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Representação acerca de possíveis irregularidades ocorridas no âmbito da então Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=863624",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Recurso de reconsideração interposto contra Acórdão que julgou as contas do recorrente irregulares e condenou-o ao pagamento de débito e de multa em razão de irregularidades na aplicação de recursos de convênio que teve por objetivo o desenvolvimento de ações de prevenção de doenças, promoção e recuperação de saúde dos povos indígenas no Paraná.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=853327",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Agravo interposto contra acórdão que referendou a medida cautelar em representação acerca de possíveis irregularidades em licitação cujo objeto é a prestação de serviços de apoio administrativo e técnico, acessórios e instrumentais aos processos de produção, qualidade, desenvolvimento tecnológico e gestão no ramo de imunobiológicos - vacinas, reativos para diagnóstico, biofármacos, e outros insumos/serviços estratégicos em saúde de interesse do Sistema Único de Saúde (SUS).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=852695",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Auditoria com o objetivo de apurar fatos relacionados a acordo de cooperação técnico-científico firmado para produção do medicamento citrato de Sildenafila, bem como para fiscalizar Parcerias para o Desenvolvimento Produtivo (PDP).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=843133",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Solicitação do Congresso Nacional em que se requer a realização de auditoria com o objetivo de avaliar a regularidade dos contratos e da atuação da Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS) desde a sua criação.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=845068",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Agravo interposto em face de despacho que concedeu medida cautelar para que o Ministério da Saúde se abstenha de praticar quaisquer atos que impliquem alteração da cessão dos servidores à Agência para o Desenvolvimento da Atenção Primária à Saúde.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=819186",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2022",
+      "Assunto": "Referendo de cautelar adotada em sede de representação contra ato do Ministério da Saúde (MS) que dispõe sobre contagem do marco inicial de cessão de servidores do Ministério à Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=813369",
+      "Órgão": "TCU"
+    }
+  ],
+  "tcu_resumo_extrativo_concatenado": "Com o intuito de fiscalizar a regularidade das PDPs firmadas com os laboratórios farmacêuticos das Forças Armadas, o autor do Requerimento de Auditoria 62/2022-CFFC solicitou \"\"a realização de Auditoria, com o auxílio do Tribunal de Contas da União, com o objetivo de avaliar a regularidade das Parcerias para o Desenvolvimento Produtivo (PDP's) nos laboratórios das Forças Armadas: No entanto, o Relator, Ministro Vital do Rêgo, sugeriu em seu Voto (peça 12) que a fiscalização objeto da SCN deveria se limitar às parcerias firmadas pelo Ministério da Saúde com os laboratórios das Forças Armadas nos últimos cinco anos , por entender que o prazo de dez anos a que a solicitação se refere ser por demais alongado, apto a trazer informações antigas, não condizentes com a realidade mais atual dos laboratórios farmacêuticos das Forças Armadas, a dificultar a continuidade dos trabalhos investigativos. 10. Número da PDP Data celebração Laboratório militar parceiro Objeto da parceira Valor da parceria Período da parceria Resultados alcançados, incluindo a transferência de tecnologia pretendida Termo de Compromisso 15/2012 e Termo de Compromisso 27/2018. Termo de Compromisso 22/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Químico Farmacêutico da Aeronáutica (LAQFA) Darunavir comp. Termo de Compromisso 23/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Químico Farmacêutico da Aeronáutica (LAQFA) Dolutegravir comp. revestidos 50 mg Não se aplica, pois se encontra em Fase II Fase II PDP em Fase II Termo de Compromisso 25/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Farmacêutico da Marinha (LFM) Daclatasvir 30 e 60 mg comp. revestido Não se aplica, pois se encontra em Fase I Fase I PDP em Fase I Termo de Compromisso 26/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Farmacêutico da Marinha (LFM) Teriflunomida 14 mg comp. revestido Não se aplica, pois se encontra em Fase II Fase II PDP em Fase II Termo de Compromisso 35/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Químico Farmacêutico da Aeronáutica (LAQFA) Dasatinibe 20 mg, 50 mg e 100 mg comp. Sendo assim, considerando apenas os processos em andamento e pelo menos um de cada laboratório farmacêutico militar, sugere-se incluir no escopo da fiscalização os seguintes termos de compromisso, sem prejuízo de se fiscalizar o Acordo de Cooperação Técnico 765741-008/2014, firmado entre o Ministério da Saúde e o Comando da Marinha, para produção do Citrato de Sildenafila, objeto da presente SCN: Número da PDP Data celebração Laboratório militar parceiro Objeto da parceira Valor da parceria Período da parceria Resultados alcançados, incluindo a transferência de tecnologia pretendida Termo de Compromisso 15/2012 e Termo de Compromisso 27/2018. Termo de Compromisso 23/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Químico Farmacêutico da Aeronáutica (LAQFA) Dolutegravir comp. revestidos 50 mg Não se aplica, pois se encontra em Fase II Fase II PDP em Fase II Termo de Compromisso 25/2018 O extrato do Termo de Compromisso foi assinado em 27/03/2018 Laboratório Farmacêutico da Marinha (LFM) Daclatasvir 30 e 60 mg comp. Após analisar as PDPs firmadas entre o Ministério da Saúde e os laboratórios farmacêuticos militares nos últimos cinco anos, sugere-se a realização de auditoria que deve ser conduzida em processo autuado especificamente para essa finalidade, visando apurar os fatos objeto da solicitação do Congresso Nacional encaminhada ao TCU, relacionados ao Acordo de Cooperação Técnico 765741-008/2014, firmado entre o Ministério da Saúde e o Comando da Marinha, para produção do Citrato de Sildenafila, bem como para fiscalizar as PDPs relativas aos termos de compromisso 15/2012 e 27/2018, firmado com o LQFEx; 23/2018, firmado com o LAQFA; a) autorizar a realização de auditoria que deve ser conduzida em processo autuado especificamente para essa finalidade, visando apurar os fatos objeto da solicitação do Congresso Nacional encaminhada ao TCU, relacionados ao Acordo de Cooperação Técnico 765741-008/2014, firmado entre o Ministério da Saúde e o Comando da Marinha, para produção do Citrato de Sildenafila, bem como para fiscalizar as PDPs relativas aos termos de compromisso 15/2012 e 27/2018, firmado com o LQFEx; 23/2018, firmado com o LAQFA;\n\nabstenha-se de celebrar novas PDP até que sejam estabelecidos mecanismos para avaliar objetivamente a conclusão e a eficácia da transferência e da internalização de tecnologia das PDP, bem como para medir a realização dos objetivos definidos no art. 3° do Anexo XCV da Portaria de Consolidação GM/MS 5/2017; 9.7.2. inclua, na norma de regência da política de PDP, critérios específicos para obtenção de preços de referência para as aquisições realizadas após a vigência da PDP, com fundamento no art. 24, VIII da Lei 8.666/1993 ou no art. 75, IX da Lei 14.133/2021, uma vez que os critérios definidos na Instrução Normativa 73, de 31/8/2020 têm se mostrado insuficientes, de modo que sejam adotados parâmetros objetivos para aferição da vantajosidade das aquisições, que contemplem, no mínimo: 9.7.11.1. dar ciência ao Ministério da Saúde, com fundamento no art. 9o, inciso I, da Resolução TCU 315/2020, a fim de evitar a reincidência dos atos praticados, de que as avaliações e decisões da Comissão Técnica de Avaliação (CTA) e do Comitê Deliberativo (CD), adotadas no âmbito do processo seletivo iniciado em 2017, para celebração de parcerias para o desenvolvimento produtivo (PDP), com base em critérios não previstos na norma de regência, a exemplo da inclusão em plataformas tecnológicas, ou da extinção de parceria anterior firmada com a mesma instituição, contrariaram os princípios gerais da transparência e do julgamento objetivo previstos nas leis que regem os processos licitatórios se não houver demonstração documentada de que se tratava de medida indispensável ao êxito da PDP; 9.9. Em relação ao achado que resultou em proposta de deliberação de interesse para análise do presente recurso, ao analisar a economicidade e a vantajosidade das aquisições realizadas no âmbito de uma PDP, em que pese ter reconhecido o esforço da área técnica na realização das análises dos preços ofertados pelas IP, a equipe de fiscalização identificou oportunidade de melhoria em relação a ausência, no âmbito dos projetos de PDP, dos custos relativos aos preços dos produtos e daqueles alusivos à internalização da tecnologia (peça 424, p. 72-75), providência que foi determinada por este Tribunal no âmbito do TC 033.042/2013-6 , que tratou de representação relacionada à PDP firmada entre o entre o Instituto de Tecnologia em Fármacos (Farmanguinhos), vinculado à Fundação Oswaldo Cruz (Fiocruz), e a empresa Libbs Farmacêutica Ltda (item 9.3 do Acórdão 725/2018-TCU-Plenário ): 9.3. determinar ao Ministério da Saúde - na condição de responsável pela condução da política pública de fomento do Complexo Industrial na área de Saúde no âmbito federal, conforme se extrai da Lei 8.080/90 e legislação relacionada -, com base no art. 250, II, do Regimento Interno/TCU, que defina os critérios e as metodologias que deverão ser observados para apuração do valor de transferência de tecnologia ( Know how ), inclusive para fins de fixação de cláusula penal, em observância ao disposto no art. 55, VII, da Lei 8.666/1993, encaminhando ao Tribunal, no prazo de 60 (sessenta) dias, as medidas adotadas e, se for o caso, o cronograma para atendimento desta determinação; 2.9. Diante do exposto, considerando a contratação pelo Ministério da Saúde do Instituto de Pesquisa Econômica Aplicada (Ipea) para realização de estudo que possuía entre os seus objetivos a elaboração de proposta metodológica e de critérios de precificação de tecnologias em saúde no Brasil, a AudSaúde propôs determinar ao Ministério da Saúde, em um novo e improrrogável prazo de sessenta dias, o encaminhamento de cronograma atualizado para dar cumprimento integral ao subitem 9.3 do Acórdão 725/2018-Plenário (peça 424, p. 113, item V, 'd'). 2.11. (...) determinar ao MS que suspenda a celebração de novas PDP até que tenha estabelecido mecanismos para avaliar objetivamente a conclusão e a eficácia da transferência e da internalização de tecnologia das PDP, bem como para medir a realização dos objetivos definidos no art. 3° do Anexo XCV da Portaria de Consolidação. Da factibilidade da aplicação de um modelo de precificação de transferência de tecnologias no âmbito das PDP e a sua consequência para o cumprimento do subitem 9.5.3.4 do Acórdão 2015/2023-TCU-Plenário (peça 443, p. 5-8;\n\nA representação foi julgada parcialmente procedente, por meio do Acórdão 544/2020-TCU-Plenário , o qual ainda indeferiu o requerimento de medida cautelar e determinou à Secretaria de Ciência, Tecnologia e Insumos Estratégicos do Ministério da Saúde (Sctie/MS), atual Secretaria de Ciência, Tecnologia e Inovação e do Complexo Econômico-Industrial da Saúde (Sectics), que adotasse providências para implementar medidas que assegurassem a transferência de tecnologia de produção do IFA para o parceiro público no âmbito das PDPs a serem celebradas, a fim de evitar a dependência do laboratório público em relação ao laboratório privado, caso o laboratório público não fosse o destinatário da transferência de tecnologia para produção do IFA (item 9.3). Por fim, ressalto que acolhi a sugestão do eminente revisor, Ministro Benjamim Zymler, no sentido de modificar a redação do acordão que proponho a este Plenário, deixando ainda mais claro que a determinação contida no subitem 9.3 do Acórdão 544/2020-TCU-Plenário , de minha relatoria (TC- 030.310/2017-2 ), no sentido de assegurar a transferência de tecnologia de produção do insumo farmacêutico ativo (IFA) para o parceiro público no âmbito das Parcerias de Desenvolvimento Produtivo (PDPs) autorizadas pelo Ministério da Saúde, refere-se exclusivamente ao domínio tecnológico necessário para a produção do medicamento e não à transferência da produção do medicamento, propriamente dita, pelo laboratório público . Assim, muito embora, a recorrente/representante tenha alegado que, em um contrato administrativo de PDP, a empresa contratada tem a obrigação de transferir a tecnologia de produção do IFA (além da tecnologia de fabricação do medicamento como produto final), o seu interesse na representação era a determinação do Ministério da Saúde para que reprovasse as propostas de PDP relativas ao IFA entricitabina + tenofovir que não tinham a recorrente como fornecedora da tecnologia. Segundo a recorrente, a obrigação de transferir a tecnologia de produção do IFA (além da tecnologia de fabricação do medicamento como produto final) decorre tanto dos objetivos das PDPs, quanto das disposições do Anexo XCV da Portaria de Consolidação GM/MS 5/2017 que as regulamenta e estabelece a portabilidade tecnológica como um objetivo relevante das PDPs, pois, ao fim do processo, a entidade pública deve ser capaz de transmitir para outra instituição pública todo o conhecimento necessário para a produção do produto (peça 30, p. 12). A recorrente afirma que o acórdão recorrido, além de negar a imperatividade normativa que impõe à instituição pública a absorção de todo o domínio tecnológico necessário para a produção do IFA pareceu se compadecer das considerações trazidas pela unidade jurisdicionada para concluir que para assegurar a absorção de todo o domínio tecnológico necessário à produção de determinado IFA, seria necessário expertise da instituição pública em todas as fases dessa produção, o que só seria cabível caso o laboratório público contasse com equipamentos e pessoal capacitado para essa produção, o que exige investimentos elevados para a verticalização integral da cadeia produtiva no âmbito das instituições públicas, incluindo os gastos para adaptação dos parques industriais, contratação de mão-de-obra especializada e capacitação tecnológica; Por outro lado, caso o objeto da PDP seja a produção do medicamento, apesar da exigência de nacionalização da produção do IFA pelo parceiro privado, não há qualquer normativa quanto à obrigatoriedade de transferência da tecnologia de produção do IFA para o laboratório público, situação em que a transferência de tecnologia para a instituição pública e a capacidade de realizar a portabilidade tecnológica ao final do processo se referem à produção do medicamento.\n\nFATOS NOTICIADOS/OBJETO DA REPRESENTAÇÃO Na petição inicial, a então Dinteg/MS, sucedida pela Assessoria Especial de Controle Interno (AECI/MS), trouxe ao conhecimento do TCU uma série de denúncias referentes à supostas irregularidades nos processos seletivos de pessoal administrativo e de médicos na Adaps, bem como a possíveis ocorrências de favorecimento a servidores do Ministério da Saúde, e a pessoas a eles relacionadas, com cargos na agência (peça 2). a) contratação do IEL/DF para realização dos processos seletivos do pessoal administrativo da Adaps, tendo em vista que a entidade possivelmente empregava a mãe do então Diretor-Presidente da agência quando da assinatura do contrato, em contrariedade ao disposto no art. 91 da Resolução SAPS/MS 3, de 15/10/2021 (https://www.in.gov.br/en/web/dou/-/resolucao-n-3-de-15-de-outubro-de-2021-352687637; Conforme permissivo do art. 22, inciso IX, da Resolução SAPS/MS 3/2021, que dispõe sobre o regulamento das licitações, compras e contratações da Adaps, a contratação do IEL/DF para a realização de processo seletivo dos cargos administrativos da agência ocorreu por meio de dispensa de licitação, na hipótese de contratação com serviços sociais autônomos ou com órgãos ou entidades integrantes da Administração Pública, quando o objeto do contrato for vinculado às atividades finalísticas do contratado (peça 30, p. 50). 1.2. No que concerne à contratação do IEL/DF, para realização dos processos seletivos do pessoal administrativo da Adaps, tendo em vista que a entidade possivelmente empregava a mãe do então Diretor-Presidente quando da assinatura do contrato, em contrariedade ao disposto no art. 91 da Resolução SAPS/MS 3 de 15/10/2021, a CII apontou que \"\"a contratação entre Adaps e IEL apresenta conflito de interesse, conforme também apurado pela CAAS/MS, tendo em vista a vinculação da mãe do então Diretor-Presidente da Agência ao IEL/DF, sendo a informação de vínculo empregatício confirmada por meio da Relação Anual de Informações Sociais - RAIS\"\" (peça 59, p. 18 e 72). No tocante à contratação do IEL/DF, por meio de dispensa de licitação, para a realização de processo seletivo dos cargos administrativos da agência, situação essa que não se enquadra em hipótese nas leis gerais de licitações e contratos, e se afigura em possível contrariedade à jurisprudência do TCU, tem-se que nenhuma análise acerca desse tema foi encontrada dentre os documentos apresentados pelo Ministério da Saúde e pela Adaps, embora ambos tenham sido instados a encaminhar documentação contendo esclarecimentos a respeito das medidas efetivamente tomadas com relação à possível irregularidade, tratada no parágrafo 88.2 da instrução anterior (peça 48, p. 16), conforme consta expressamente das alíneas \"\"b.2\"\" e \"\"c.4\"\" da proposta de encaminhamento da peça 48, p. 18. 1.8. No que concerne ao indício de irregularidade na contratação do IEL/DF para realização dos processos seletivos do pessoal administrativo da Adaps, tendo em vista que o instituto possivelmente empregava a mãe do então Diretor-Presidente quando da assinatura do contrato, em contrariedade ao disposto no art. 91 da Resolução SAPS/MS 3 de 15/10/2021, tem-se que essa irregularidade foi confirmada pela CII, segundo consta do parágrafo 26.1 anterior. Com fulcro nas informações trazidas no Relatório Final da Comissão de Investigação Interna da Adaps, pode-se confirmar os indícios de mitigação aos princípios da publicidade e da isonomia, na medida em que a divulgação muito restrita dos processos seletivos, aliado ao curto prazo para realização das respectivas inscrições, foram, de fato, fatores limitantes à ampla concorrência na seleção de candidatos aos postos administrativos da Adaps. 1.21. Embora tenha sido solicitada, nas diligências realizadas junto ao MS e à Adaps (peças 51 e 52, respectivamente), a apresentação de documentação contendo esclarecimentos acerca das medidas tomadas com relação à possível irregularidade, tratada no parágrafo 88.3 da instrução anterior (peça 48, p. 16), conforme consta das alíneas \"\"b.2\"\" e \"\"c.4\"\" da proposta de encaminhamento da peça 48, p. 18, observou-se que a única medida, supostamente tomada, se resume na recomendação contida no Relatório Final da CII, para que fosse remetida a cópia daquele relatório, para conhecimento e adoção de medidas julgadas pertinentes, dentro de suas esferas de competências, (i) à Diretoria Executiva da Adaps;\n\ncondenar os responsáveis, com fundamento no art. 19, caput, da Lei 8.443/1992, a pagar, solidariamente, os valores relacionados a seguir, atualizados monetariamente e acrescidos dos juros de mora, calculados a partir das respectivas datas até o dia do efetivo pagamento, e fixando-lhes o prazo de 15 (quinze) dias, contados da ciência, nos termos do art. 214, inciso III, alínea \"\"a\"\", do Regimento Interno do TCU, para que comprovem perante este Tribunal o recolhimento do montante aos cofres da Fundação Nacional de Saúde (Funasa): 9.2.1. débitos de responsabilidade solidária da Associação de Defesa do Meio Ambiente de Reimer (06.303.088/0001-05) e de Vitor Jorge Woytuski Brasil (XXX.495.209-XX): débito de responsabilidade solidária da Associação de Defesa do Meio Ambiente de Reimer (06.303.088/0001-05), de Vitor Jorge Woytuski Brasil (XXX.495.209-XX) e de Eduardo Flávio Zardo (XXX.856.009-XX): aplicar aos responsáveis, individualmente, a multa prevista no art. 57 da Lei 8.443/1992, nos valores a seguir indicados, fixando-lhes o prazo de 15 (quinze) dias da notificação, nos termos do art. 214, inciso III, alínea \"\"a\"\", do Regimento Interno do TCU, para que comprovem perante este Tribunal o recolhimento da respectiva quantia aos cofres do Tesouro Nacional, a qual deverá ser atualizada monetariamente a partir da data do presente acórdão, se paga após o vencimento: autorizar, desde logo, caso solicitado e o processo não tenha sido remetido para cobrança judicial, o pagamento das dívidas em até 36 (trinta e seis) parcelas mensais e consecutivas, observada a forma do art. 26 da Lei 8.443/1992 c/c o art. 217 do Regimento Interno do TCU, fixando-se o vencimento da primeira parcela em 15 (quinze) dias, a contar do recebimento das notificações, e o das demais a cada mês, devendo incidir sobre cada valor mensal os correspondentes acréscimos legais, na forma prevista na legislação em vigor, sem prejuízo de alertar os responsáveis de que a falta de comprovação do recolhimento de qualquer parcela implicará o vencimento antecipado do saldo devedor; 9.6. enviar cópia deste acórdão, acompanhado do relatório e voto, à Procuradoria da República no Estado do Paraná, nos termos do § 3o do art. 16 da Lei 8.443/1992, c/c o § 7o do art. 209 do Regimento Interno do TCU, para as medidas que entender cabíveis; 9.7. Cuidam os autos de tomada de contas especial (TCE) instaurada pela Fundação Nacional de Saúde (Funasa) em desfavor da Associação de Defesa do Meio Ambiente de Reimer (CNPJ 06.303.088/0001-05), de Eduardo Flávio Zardo e de Vitor Jorge Woytuski Brasil. Emitiu-se o Relatório de TCE em 30/1/2017 (peça 5, p. 359-365) e, em seguida, os autos do processo de contas foram remetidos para o controle interno mediante ofício de 24/5/2017 (peça 5, p. 368). a) Ao contrário do que ocorre no processo civil, o recebimento do processo no âmbito do TCU não é causa de interrupção da prescrição. c) Nos termos da Lei 9.873/1999, prescreve em cinco anos a ação punitiva da Administração Pública Federal, contados da data da prática do ato ou, no caso de infração permanente ou continuada, do dia em que tiver cessado. Também não merece prosperar a tese de que houve atraso na instauração da TCE por parte do TCU e que, por isso, estaria prescrito o direito de o TCU instaurar o processo. d) em 7/5/2018, com instrução da unidade técnica do TCU, por se tratar de ato inequívoco de apuração do fato (peça 13); e) em 30/12/2020, com instrução da unidade técnica do TCU, por se tratar de ato inequívoco de apuração do fato (peça 99); f) A TCE parte da premissa de que metas não foram cumpridas e de que os gastos foram irregulares, mas não motiva a inclusão dos ex-dirigentes como solidários no débito a ser ressarcido. Para ele, não houve motivação para a inclusão em solidariedade de pessoas físicas pertencentes ao quadro da empresa, ou seja, trata-se de nulidade por falta de fundamentação. 6.3. Por último, não faz sentido o recorrente afirmar que a TCE parte da premissa de que metas não foram cumpridas e de que os gastos foram irregulares, mas não houve motivação para a inclusão dos ex-dirigentes como solidários no débito a ser ressarcido. No caso, não se concluiu que houve má-fé, mas apenas que não havia elementos para afirmar que houve boa-fé por parte do recorrente. Ele garante que não houve dano ao erário, que as falhas foram formais e que jamais assinou ou autorizou contas ou prestação de serviços fora do plano de metas no período em que exerceu o cargo de presidente interino.\n\nA contratação é de trabalhadores de uma fábrica de medicamentos, que possui obrigatoriamente por lei uma cadeia de produção submetida ao Sistema de Qualidade Farmacêutico. Assim, no intuito de tutelar o interesse público, Bio-Manguinhos/FIOCRUZ celebrou, de forma totalmente circunstancial e pontual, o Contrato de Emergencial pelo período de 6 meses, sendo esse período mensurado como necessário à conclusão do Pregão no 232/2023 e a transição entre o contrato atual e o contrato decorrente do Pregão no 262/2023 que, minimamente, deverá ser operacionalizada em 3 meses, considerando, em especial, que haverá o desligamento de 1.831 profissionais. 6. Em consonância com a Resolução da Diretoria Colegiada da Agência Nacional de Vigilância Sanitária - ANVISA n° 658/2022, que dispõe sobre as Diretrizes Gerais de Boas Práticas de Fabricação (BPFs) de Medicamentos, o detentor de uma autorização deve fabricar medicamentos com a garantia de que correspondem à finalidade pretendida, satisfaçam os requisitos do registro ou da autorização para uso em ensaio clínico, conforme apropriado, a fim de não colocar os pacientes em risco devido à segurança, qualidade ou eficácia inadequadas. 45. As Boas Práticas de Fabricação se aplicam e são exigíveis em todas as etapas do ciclo de vida do produto, desde a fabricação de medicamentos experimentais, transferência de tecnologia, logística de aquisição de insumos e distribuição de produtos, fabricação comercial até a descontinuação do produto. 46. As Boas Práticas de Fabricação (BPF) são a parte do Gerenciamento da Qualidade que assegura que os produtos são consistentemente produzidos e controlados de acordo com os padrões de qualidade apropriados para o uso pretendido e requerido pelo registro sanitário, autorização para uso em ensaio clínico ou especificações do produto. 47. O Pregão Eletrônico no 262/2023 comporta a prestação de serviços que irá apoiar e suportar tecnicamente todas as atividades integrantes da cadeia produtiva e do Sistema da Qualidade Farmacêutica, compreendendo, portanto, o cumprimento das Boas Práticas de Fabricação e o Gerenciamento de Riscos da Qualidade. Maior custo de gestão no que tange aos aspectos de fiscalização técnica e administrativa, envolvendo em diferentes contratos o acompanhamento da execução dos serviços, recolhimento de tributos, apuração de valores não renováveis, processamento de repactuação, gestão da conta vinculada, acompanhamento da garantia contratual e demais eventos pertinentes à fiscalização contratual, para efeito de observância ao disposto no art. 121, § 3o da Lei no 14.133/21 e à IN SLTI no 05/2017. 51. Sob a perspectiva econômica, há de se registrar que não se vislumbra benefícios no parcelamento do objeto do PE no 262/2023, isso porque a celebração de contratos distintos não assegurará a redução de custos fixos, inclusive do BDI, já que considerará um número reduzido de postos de trabalho, diversamente da celebração de contrato unificado que, ao que tudo indica, resultará em maior economia. Em razão das peculiaridades do objeto do Pregão Eletrônico no 262/2023 estão presentes os pressupostos legais para a sua contratação de forma unificada, haja vista representar a única solução em consonância com as Boas Práticas de Fabricação e o Gerenciamento de Riscos de Qualidade. Considerando que o consórcio se caracteriza pela associação temporária de pessoas jurídicas para um fim específico e, considerando que o objeto da licitação envolverá, essencialmente, a alocação de mão-de-obra com dedicação exclusiva, cuja relação empregatícia (empregador e empregado) estará sujeita ao cumprimento das regras estatuídas na Consolidação das Leis do Trabalho (CLT), não será permitida a participação de consórcio, tendo em vista que: 11.4.1. Vislumbra-se, nessa situação, que, em que pese existir risco de restrição da competitividade do certame, tendo em vista o grande vulto do objeto contratado, tratava-se de uma decisão discricionária do gestor, devendo essa ser motivada, como de fato ocorreu no item 11.4 do TR. 16.8. A mão de obra na indústria farmacêutica, e objeto do Pregão Eletrônico ora suspenso, desempenha um papel central na garantia da qualidade e segurança dos produtos, sendo essencial para o cumprimento dos requisitos das Boas Práticas de Fabricação.\n\nCuidam os autos de relatório de auditoria, que objetivou apurar os fatos objeto da solicitação do Congresso Nacional, matéria do TC 010.751/2022-0 , relacionados ao Acordo de Cooperação Técnico-Científico 765741-008/2014, firmado entre o Ministério da Saúde (MS) e o Comando da Marinha, para produção do Citrato de Sildenafila, bem como fiscalizar as Parcerias para Desenvolvimento Produtivo (PDP) relativas aos termos de compromisso 15/2012 e 27/2018, firmados com o Laboratório Químico-Farmacêutico do Exército (LQFEx); 3/2018, firmado com o Laboratório Químico-Farmacêutico da Aeronáutica (LAQFA); Atualmente, as Parcerias para o Desenvolvimento Produtivo (PDP) se constituem em um dos instrumentos da Política Nacional de Inovação Tecnológica na Saúde (Pnits), instituída pelo Decreto 9.245, de 20/12/2017, que regulamenta o uso do poder de compra do Estado em contratações e aquisições que envolvam produtos e serviços estratégicos para o Sistema Único de Saúde (SUS) no âmbito do Complexo Econômico-Industrial da Saúde (CEIS). consiste na fase de conclusão do desenvolvimento, transferência e absorção da tecnologia objeto da PDP em condições de produção do produto no país e portabilidade tecnológica por parte da instituição pública. O processo de execução da PDP tem início com a publicação pelo MS da lista de produtos estratégicos para o SUS, a partir da qual as parcerias são estabelecidas para a submissão de propostas de projeto de PDP à Sectics/MS, que, por sua vez, analisará a viabilidade da proposta. A fase III - PDP inicia-se com a demonstração ao MS pela IP do início da etapa de desenvolvimento, transferência e absorção de tecnologia, capacitação industrial e tecnológica, em conjunto com o primeiro fornecimento do produto objeto da PDP ao MS pela instituição pública, ou seja, a primeira compra pública efetiva realizada no âmbito da PDP, por dispensa de licitação, pautada no art. 24, XXXII da Lei 8.666/1993 ou no art. 75, XII da Lei 14.133/2021. Objetivo e questões de auditoria A presente auditoria teve por objetivo apurar os fatos objeto da solicitação do Congresso Nacional encaminhada ao TCU, relacionados ao Acordo de Cooperação Técnico-Científico 765741-008/2014, firmado entre o Ministério da Saúde e o Comando da Marinha, para produção do Citrato de Sildenafila, bem como para fiscalizar as PDP relativas aos termos de compromisso 15/2012 e 27/2018, firmado com o LQFEx; 3/2018, firmado com o LAQFA; As aquisições realizadas no bojo do Acordo de Cooperação Técnico-Científico 765741 008/2014 (TC 36/2013), firmado entre o Ministério da Saúde e o LFM, para produção do Citrato de Sildenafila e dos TC 15/2012 e 27/2018, firmados com o LQFEx para produção de Micofenolato de Sódio, constituem ofensa ao dever de licitar e atendem aos critérios de economicidade e vantajosidade? bem como no que se refere a definição de prazos para conclusão da transferência de tecnologia e para atuação da área técnica da secretaria finalística do Ministério da Saúde (Secretaria de Ciência, Tecnologia, Inovação e Insumos Estratégicos - Sctie) e de colegiados (Comissão Técnica de Avaliação - CTA e Comitê Deliberativo - CD); recomendar ao MS e ao LFM, com fundamento no art. 11 da Resolução TCU 315/2020, e no art. 2o do Decreto 9.203/2017, que adotem medidas necessárias e suficientes para assegurar, no âmbito do TC 36/2013 e do Acordo de Cooperação Técnico-Científico 765741 008/2014, a absorção da transferência de tecnologia referente à produção das dosagens de 25 e 50mg do medicamento Citrato de Sildenafila, com vistas a mitigar os riscos advindos das alterações promovidas no curso da parceria. Em vez disso, a cláusula que previa o fim da PDP foi objeto de ajustes em outubro de 2019, quando o Comitê Deliberativo do MS aprovou a exclusão da condicionante da obrigatoriedade da internalização da etapa fermentativa na fabricação do Insumo Farmacêutico Ativo (IFA), bem como a extensão do cronograma de fase III do projeto para 24 meses a partir de maio de 2021, em detrimento de perda de parte dessa relevante transferência de tecnologia para o país, consoante consta da Ata da Reunião à peça 115, p. 2.\n\nCita informações contidas em matéria jornalística publicada na Revista Piauí (intitulada \"\"Bolsonaro desidratou Mais Médicos e pôs no lugar um ninho de falcatruas\"\", de autoria do jornalista Breno Pires, Edição n. 201, junho de 2023, reproduzida à peça 10) relativas a possíveis irregularidades que teriam sido praticadas no âmbito da Agência de Desenvolvimento da Atenção Primária em Saúde (ADAPS), durante o mandato do ex-presidente da República Jair Messias Bolsonaro. A ADAPS celebrou contrato de gestão com o Ministério da Saúde para exercer as competências que lhe foram atribuídas pela Lei 13.958/2019, consoante arts. 14 a 17 (Resolução do Conselho Diretor da ADAPS de 15/10/2021, peça 14). De acordo com informações extraídas dessa resolução, o relatório preliminar da CAAS apontou indícios de irregularidades envolvendo diretores e empregados dessa agência, tais como indícios de troca de influências e de inadequação de condutas, além de possível manipulação de processos seletivos para o recrutamento de empregados, visando ao direcionamento para contratação de pessoas com vínculos pessoais com dirigentes. Art. 6o Fica o Poder Executivo federal autorizado a instituir a Agência Brasileira de Apoio à Gestão do SUS (AGSUS), serviço social autônomo, na forma de pessoa jurídica de direito privado sem fins lucrativos, de interesse coletivo e de utilidade pública, com a finalidade de promover, em âmbito nacional, a execução de políticas de desenvolvimento da atenção à saúde indígena, nos diferentes níveis, e da atenção primária à saúde , com ênfase: Vital do Rêgo Trata-se de representação instaurada em razão de comunicação da extinta Diretoria de Integridade do Ministério da Saúde (DINTEG/MS), sucedida pela Assessoria Especial de Controle Interno (AECI/MS), acerca de denúncias acerca de possíveis irregularidades ocorridas no âmbito da ADAPS, a saber: Contratação do Instituto Euvaldo Lodi (IEL/DF) para realização dos processos seletivos do pessoal administrativo da ADAPS, tendo em vista que a entidade possivelmente empregava a mãe do então Diretor-Presidente quando da assinatura do contrato, em contrariedade ao disposto no art. 91 da Resolução SAPS/MS no 3 de 15/10/2021. Contratação do IEL/DF por meio de dispensa de licitação na hipótese de contratação com serviços sociais autônomos ou com órgãos ou entidades integrantes da Administração Pública, quando o objeto do contrato for vinculado às atividades finalísticas do contratado (art. 22, inciso IX, da Resolução SAPS/MS no 3/2021), hipótese de dispensa não prevista nas leis gerais de licitações e contratos, em possível contrariedade à jurisprudência do TCU de que \"\"entidades do Sistema S não podem inovar na ordem jurídica, por meio de seus regulamentos próprios, instituindo novas hipóteses de dispensa e de inexigibilidade de licitação, haja vista que a matéria deve ser disciplinada por norma geral, de competência privativa da União\"\" ( Acórdão 338/2007-1a Câmara ). O feito tem por objeto possíveis irregularidades no ato que dispôs sobre contagem dos marcos inicial e final de atos de cessão de servidores do Ministério da Saúde à ADAPS pelo prazo de dois anos, com ônus ao cedente, com fundamento no disposto na Lei 13.958/2019. Na manifestação de mérito da AudSaúde, cujos fundamentos foram incorporados às razões de decidir pelo Ministro-Relator, concluiu-se, com base nas informações prestadas pela ADAPS, que a agência dispunha de recursos para custeio oriundos do contrato de gestão com o MS para o recebimento de cerca de R$ 254 milhões, com parcelas mensais de 84 milhões, afastando o risco ao interesse público relativo à continuidade operacional da ADAPS. No voto condutor do referido acórdão, o Ministro-Relator incorporou às suas razões de decidir as conclusões da unidade técnica quanto à eliminação do risco de prejuízo às atividades da ADAPS, bem como quanto à data da instalação efetiva da agência como marco inicial para cômputo do prazo de cessão de servidores.\n\nINTRODUÇÃO Trata-se de representação formulada pela representante contra ato do Ministério da Saúde (MS) que dispôs sobre contagem do marco inicial, e por conseguinte, final do instituto de cessão de servidores do Ministério da Saúde (MS) à Agência para o Desenvolvimento da Atenção Primária à Saúde (Adaps). O art. 31, inciso II, da Lei 13.958/2019 prevê a mudança de ônus da cessão para o cessionário após decorridos dois anos da instituição da Adaps, e o ato ministerial contestado pela representante se baseou em parecer da Consultoria Jurídica do ministério (Conjur-MS) o qual entende que deva ser adotada a data do decreto, 20/3/2020, como marco inicial para contagem de prazo das cessões. e II - com ônus ao cessionário, decorrido o prazo de que trata o inciso I do caput deste artigo, observado o disposto no art. 61 da Lei no 13.844, de 18 de junho de 2019. § 1o Aos servidores cedidos nos termos do inciso I do caput deste artigo são assegurados os direitos e as vantagens a que façam jus no órgão ou na entidade de origem, considerado o período de cessão para os efeitos da vida funcional como efetivo exercício no cargo ou no emprego que ocupem no órgão ou na entidade de origem. § 2o Não será incorporada à remuneração de origem do servidor cedido qualquer vantagem pecuniária que venha a ser paga pela Adaps. § 3o É vedado o pagamento de vantagem pecuniária permanente ao servidor cedido com recursos provenientes do contrato de gestão, ressalvada a hipótese de adicional relativo ao exercício de função temporária de direção, gerência ou assessoria. § 4o O servidor cedido ficará sujeito aos processos de avaliação de desempenho e de metas de desempenho, institucionais e individuais, aplicados aos empregados da Adaps, observadas as regras estabelecidas para o desenvolvimento e para a percepção da gratificação de desempenho do cargo efetivo. § 5o Os servidores cedidos nos termos do caput deste artigo poderão ser devolvidos a qualquer tempo ao Ministério da Saúde por decisão da Adaps. Conforme despacho do Ministro Relator (peça 12, p. 6), que acompanhou proposta desta unidade técnica, o instituto do fumus boni iuris se caracteriza ante ato do gestor que considera o marco inicial da cessão de servidores do Ministério da Saúde para a Adaps como aquele contado da data da instituição formal da referida agência (20/3/2020), sendo que não houve qualquer cessão nesse período. Ante o exposto, em juízo de cognição sumária, adoto a medida cautelar sugerida pela unidade técnica e DETERMINO , nos termos do art. 276, caput , do Regimento Interno/TCU, ao Ministério da Saúde que se abstenha de praticar quaisquer atos que impliquem alteração da cessão dos servidores à Agência para o Desenvolvimento da Atenção Primária à Saúde, diverso do que se encontra nas portarias de cessão, ou, caso praticados atos que impliquem alteração, que sejam sobrestados até que o TCU decida sobre o mérito da questão. Relata, a Conjur-MS, que a questão foi submetida à apreciação da Coordenação-Geral de Movimentação de Pessoal da Secretaria de Gestão e Desempenho de Pessoal do Ministério da Economia, a qual se posicionou pela necessidade de adequar a cessão desses servidores cedidos ao preceito do inciso II do art. 31 da Lei 13.958/2019 (peça 28, p. 8). Retorna à questão da literalidade da redação do art. 31, incisos I e II, da Lei 13.958/2019 em conjunto com a publicação do Decreto 10.283, de 20 de março de 2020, que define a data do decreto como marco inicial para contagem de prazo das cessões, entendimento esse ratificado no citado Parecer 534/2022/CONJUR-MS/CGU/AGU e em parecer da Procuradoria-Geral da Fazenda Nacional (PGFN), integrante do também citado parecer juntado à peça 29. Explica que as portarias de cessão, publicadas em agosto de 2021, foram retificadas em 8/11/2022, em razão do transcurso do prazo de dois anos estabelecido no art. 31, inciso I, da Lei 13.958/2022, passando a viger com a redação determinando que o ônus pela remuneração é do órgão cedente até 20/3/2022, ficando com o cessionário a partir de 21/3/2022. a fumaça do bom direito, que se evidencia no ato do gestor em considerar o marco inicial da cessão de servidores do Ministério da Saúde para a Adaps como aquele contado da data da instituição formal da referida agência (20/3/2020), sendo que não houve qualquer cessão nesse período;\n\nTrata-se de representação, com pedido de medida cautelar, formulado pela servidora pública Soraya Zacarias Drumond de Andrade, contra ato do Ministério da Saúde (MS) que dispõe sobre contagem do marco inicial de cessão de servidores do Ministério à Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS). (i) alega que, em que pese o Decreto 10.283, de 20 de março de 2020, que regulamentou a Lei 13.958/2019, enuncie em sua ementa a instituição do serviço social autônomo denominado Agência para o Desenvolvimento da Atenção Primária à Saúde, há de serem sopesados aspectos formais que conferem o início da contagem da existência da ADAPS, entre os quais: (ix) informa que a Consultoria Jurídica do MS entendeu de forma diversa e contou o prazo de cessão a partir da data do Decreto 10.283, de 20 de março de 2020, conforme Parecer 534/2022/CONJUR-MS/CGU/AGU, de 13 de julho de 2022 (peça 6). Ao final, a representante requer a concessão de medida cautelar, com a determinação ao MS para que se abstenha de praticar quaisquer atos que impliquem alteração da cessão dos servidores, diverso do que se encontra nas portarias de cessão, ou, caso praticados atos que impliquem alteração, que sejam sobrestados pelo TCU até a decisão de mérito, bem como que seja julgada procedente a representação, para que seja considerado como marco inicial da cessão de servidores do MS a data da publicação do contrato de gestão (18/10/2021) ou a data da efetiva cessão, constante nas portarias individuais. a) oitiva do Ministério da Saúde, para que informe sobre a situação funcional dos servidores cedidos à ADAPS, bem como se o Parecer 534/2022/CONJURMS/CGU/AGU está sendo observado pela Coordenação-Geral de Gestão de Pessoas do MS. Ademais, vale dizer que, em função da pandemia e dos impactos que essa situação trouxe para a implementação prática da ADAPS, as cessões de servidores do Ministério da Saúde para a referida agência não ocorreram imediatamente após sua instituição formal (Decreto 10.283, de 20 de março de 2020). Portanto, ao menos em juízo de prelibação, não me parece que o marco de contagem inicial, do período de dois anos para a cessão de servidores do Ministério da Saúde necessários à implementação efetiva da ADAPS, deva se dar a partir de 20 de março de 2020 já que, na prática, a implementação efetiva da agência não se deu na referida data. Portanto, na linha do que propõe a unidade técnica, a fim de que esta Corte de Contas se pronuncie sobre qual deve ser o marco inicial da cessão de servidores do MS à ADAPS, se faz necessário que o Ministério da Saúde se manifeste sobre os fatos apontados nesta representação, especialmente quanto à situação funcional dos servidores cedidos à ADAPS, bem como se o Parecer 534/2022/CONJUR-MS/CGU/AGU está sendo observado pela Coordenação-Geral de Gestão de Pessoas do MS. In casu , a plausibilidade jurídica resta evidenciada no ato do gestor em considerar o marco inicial da cessão de servidores do Ministério da Saúde para a ADAPS como aquele contado da data da instituição formal da referida agência (20 de março de 2020), sendo que não houve qualquer cessão nesse período. VI - Conclusão Ante o exposto, em juízo de cognição sumária, adoto a medida cautelar sugerida pela unidade técnica e DETERMINO , nos termos do art. 276, caput , do Regimento Interno/TCU, ao Ministério da Saúde que se abstenha de praticar quaisquer atos que impliquem alteração da cessão dos servidores à Agência para o Desenvolvimento da Atenção Primária à Saúde, diverso do que se encontra nas portarias de cessão, ou, caso praticados atos que impliquem alteração, que sejam sobrestados até que o TCU decida sobre o mérito da questão. promova, nos termos do art. 276, § 3o, do Regimento Interno/TCU, a oitiva do Ministério da Saúde, para, no prazo de quinze dias, manifestar-se sobre os fatos apontados na representação formulada por Soraya Zacarias Drumond de Andrade, especialmente quanto à situação funcional dos servidores cedidos à Agência para o Desenvolvimento da Atenção Primária à Saúde, bem como se o Parecer 534/2022/CONJURMS/CGU/AGU está sendo observado pela Coordenação-Geral de Gestão de Pessoas do Ministério da Saúde;",
+  "achados_text": "**ACHADOS**\n\n1.  Auditoria identificou **irregularidades** em Parcerias de Desenvolvimento Produtivo (PDPs) do Ministério da Saúde (MS), incluindo falhas na **transferência de tecnologia** para produção de Insumo Farmacêutico Ativo (IFA). Houve **exclusão** de condicionantes e extensão de cronogramas, prejudicando a internalização tecnológica. A contratação do IEL/DF para processo seletivo da ADAPS, por dispensa de licitação, pode contrariar a jurisprudência do TCU.\n2.  A contagem do marco inicial de cessão de servidores do MS à Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS) é questionada, com divergências entre o MS e a Consultoria Jurídica. A auditoria também apurou fatos relacionados ao Acordo de Cooperação Técnico-Científico entre o MS e a Marinha, para produção de Citrato de Sildenafila, e PDPs com o LQFEx, com foco na **transferência de tecnologia** e **Boas Práticas de Fabricação (BPFs)**.\n\n**FRAGILIDADES**\n\n1.  A ausência de **custos** relativos aos preços dos produtos e à internalização da tecnologia nos projetos de PDPs representa uma fragilidade. A falta de **transparência** e **julgamento objetivo** nos processos seletivos para PDPs, com critérios não previstos em norma, também foi identificada. A ausência de análise sobre a contratação do IEL/DF demonstra falhas nos **controles internos** e **monitoramento**.\n2.  A não observância da **jurisprudência do TCU** em relação às entidades do Sistema S, que não podem inovar na ordem jurídica em relação a licitações, aponta para **riscos** de contratações irregulares. A falta de definição clara sobre o marco inicial da cessão de servidores do MS à ADAPS e a ausência de **monitoramento** da situação funcional dos servidores cedidos indicam fragilidades na gestão de pessoal.\n\n**RECOMENDAÇÕES**\n\n1.  Adotar providências para implementar medidas que assegurem a **transferência de tecnologia** de produção do IFA para o parceiro público nas PDPs. (**Sectics/MS**, prazo não definido, **evidência**: comprovação da transferência).\n2.  Apresentar manifestação sobre o marco inicial da cessão de servidores do MS à ADAPS. (**MS**, prazo não definido, **evidência**: parecer jurídico).\n3.  Realizar auditoria nas PDPs firmadas pelo Ministério da Saúde com os laboratórios das Forças Armadas nos últimos cinco anos. (**TCU**, prazo não definido, **evidência**: relatório de auditoria).\n4.  Encaminhar cronograma atualizado para dar cumprimento integral ao subitem 9.3 do Acórdão 725/2018-Plenário. (**MS**, prazo de 60 dias, **evidência**: cronograma).\n"
+}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-cgu">
+        <thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-tcu">
+        <thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3ª Seção -->
+  <div class="card section">
+    <h2>Achados/Fragilidades TCU</h2>
+    <div id="achados" class="achados"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Helpers */
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+  function escapeRegExp(s){return String(s).replace(/[-\/^$*+?.()|[\]{}]/g,'\\$&');}
+  function getYearFromDateStr(s){var m=String(s||'').match(/\b(\d{4})\b/);return m?m[1]:'';}
+  function textOrEmpty(v){return (v===0? '0' : (v==null? '' : String(v)));}
+
+  // Lê seed
+  var seed = {resumo:'', cgu_tabela:[], tcu_tabela:[], achados_text:'', tcu_resumo_extrativo_concatenado:''};
+  try{ seed = JSON.parse(document.getElementById('seed').textContent||'{}'); }catch(e){}
+
+  // Realce de termos pesquisados
+  var themeMatch=(seed.resumo||'').match(/"([^"]+)"/);
+  var SEARCH_PHRASE=themeMatch?themeMatch[1].trim():'';
+  var STOP=new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que','di','du']);
+  var TERMS=(SEARCH_PHRASE?SEARCH_PHRASE.split(/\s+/):[]).filter(function(w){return w && w.length>=2 && !STOP.has(norm(w));});
+  var DIA={'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  function diacriticPart(s){return s.split('').map(function(ch){var lc=ch.toLowerCase();if(DIA[lc])return DIA[lc]; if(/\s/.test(ch))return '\\s+'; return escapeRegExp(ch);}).join('');}
+  function buildSearchRegex(){var parts=[]; if(SEARCH_PHRASE)parts.push(diacriticPart(SEARCH_PHRASE)); TERMS.forEach(function(t){parts.push(diacriticPart(t));}); if(!parts.length)return null; return new RegExp('(?:^|\\b)(' + parts.join('|') + ')(?=\\b|$)','gi');}
+  var SEARCH_RE = buildSearchRegex();
+  function highlightBold(txt){var s=textOrEmpty(txt); if(!SEARCH_RE) return s; return s.replace(SEARCH_RE, function(m){return '<b class="hl">'+m+'</b>';});}
+
+  // Título/resumo
+  document.title='Painel de '+(SEARCH_PHRASE?SEARCH_PHRASE:'Auditoria');
+  document.getElementById('titulo').textContent=document.title;
+  document.getElementById('resumo').textContent=textOrEmpty(seed.resumo);
+
+  // Mapeia tabelas
+  var CGU=(seed.cgu_tabela||[]).map(function(x){
+    return {_src:'CGU', Titulo:textOrEmpty(x['Título']), Data:textOrEmpty(x['Data']),
+            UF:(x.hasOwnProperty('UF')?x['UF']:''), Unidade:textOrEmpty(x['Unidade Auditada']),
+            Orgao:textOrEmpty(x['Órgão']||'CGU'), Tipo:textOrEmpty(x['Tipo de Serviço']), Link:textOrEmpty(x['Link'])};
+  });
+  var TCU=(seed.tcu_tabela||[]).map(function(x){
+    return {_src:'TCU', Ano:textOrEmpty(x['Ano']), Assunto:textOrEmpty(x['Assunto']),
+            Link:(x.hasOwnProperty('Link')?x['Link']:''), Orgao:textOrEmpty(x['Órgão']||'TCU')};
+  }).sort(function(a,b){return (parseInt(b.Ano||0,10)||0)-(parseInt(a.Ano||0,10)||0);});
+
+  // Totais
+  document.getElementById('cgu-tot').textContent=CGU.length;
+  document.getElementById('tcu-tot').textContent=TCU.length;
+
+  // Filtros
+  var fTxt=document.getElementById('f-texto'), fAno=document.getElementById('f-ano'), fUF=document.getElementById('f-uf'), fOrg=document.getElementById('f-orgao');
+  var yearSet={}; CGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(y) yearSet[y]=true;}); TCU.forEach(function(r){var y=r.Ano; if(y) yearSet[y]=true;});
+  Object.keys(yearSet).sort(function(a,b){return b-a;}).forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;fAno.appendChild(o);});
+  var ufSet={}; CGU.forEach(function(r){var u=(r.UF!=null && r.UF!=='N/A')?String(r.UF):''; if(u) ufSet[u]=true;});
+  Object.keys(ufSet).sort().forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=u;fUF.appendChild(o);});
+
+  var cguBody=document.querySelector('#tbl-cgu tbody');
+  var tcuBody=document.querySelector('#tbl-tcu tbody');
+
+  function renderTables(rowsCGU,rowsTCU){
+    // CGU
+    cguBody.innerHTML='';
+    if(!rowsCGU.length){var tr=document.createElement('tr');var td=document.createElement('td');
+      td.colSpan=6;td.className='no-results';td.textContent='Nenhum registro para exibir.';tr.appendChild(td);cguBody.appendChild(tr);
+    }else{
+      rowsCGU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+highlightBold(r.Titulo)+'</td><td>'+r.Data+'</td><td>'+r.UF+'</td><td>'+r.Unidade+'</td><td>'+r.Tipo+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        cguBody.appendChild(tr);
+      });
+    }
+    // TCU
+    tcuBody.innerHTML='';
+    if(!rowsTCU.length){var tr2=document.createElement('tr');var td2=document.createElement('td');
+      td2.colSpan=3;td2.className='no-results';td2.textContent='Nenhum registro para exibir.';tr2.appendChild(td2);tcuBody.appendChild(tr2);
+    }else{
+      rowsTCU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.Ano+'</td><td>'+highlightBold(r.Assunto)+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        tcuBody.appendChild(tr);
+      });
+    }
+  }
+
+  // Gráficos
+  var bar=document.getElementById('bar'), pie=document.getElementById('pie');
+  var barLegend=document.getElementById('bar-legend'), pieLegend=document.getElementById('pie-legend');
+  function drawBar(rowsCGU,rowsTCU){
+    var ctx=bar.getContext('2d'); ctx.clearRect(0,0,bar.width,bar.height); barLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].CGU++;});
+    rowsTCU.forEach(function(r){var y=r.Ano; if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].TCU++;});
+    var labels=Object.keys(agg).sort(function(a,b){return a-b;});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',bar.width/2,bar.height/2);return;}
+    var pad={t:20,r:16,b:40,l:28}, w=bar.width-pad.l-pad.r, h=bar.height-pad.t-pad.b, max=1;
+    labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});
+    ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();
+    ctx.fillStyle='#555';ctx.textAlign='right';
+    for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}
+    var groupW=w/labels.length, barW=Math.max(8,groupW*0.35);
+    var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu')||'#0a9396';
+    var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu')||'#94d2bd';
+    labels.forEach(function(y,i){
+      var x=pad.l+i*groupW+groupW/2;
+      var hCGU=(agg[y].CGU/max)*h, hTCU=(agg[y].TCU/max)*h;
+      ctx.fillStyle=String(cguColor).trim(); ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);
+      ctx.fillStyle=String(tcuColor).trim(); ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);
+      ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);
+    });
+    function leg(color,text){var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+color+'"></span>'+text;barLegend.appendChild(d);}
+    leg(String(cguColor).trim(),'CGU'); leg(String(tcuColor).trim(),'TCU');
+  }
+  function drawPie(rowsCGU){
+    var ctx=pie.getContext('2d'); ctx.clearRect(0,0,pie.width,pie.height); pieLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var u=r.UF||'N/A'; agg[u]=(agg[u]||0)+1;});
+    var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',pie.width/2,pie.height/2);return;}
+    var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];
+    var total=labels.reduce(function(s,k){return s+agg[k];},0);
+    var start=-Math.PI/2, cx=pie.width/2, cy=pie.height/2, r=Math.min(cx,cy)-14;
+    labels.forEach(function(label,i){
+      var val=agg[label], ang=(val/total)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+ang); ctx.closePath(); ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+      var pct=((val/total)*100).toFixed(1)+'%';
+      var d=document.createElement('div'); d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';
+      pieLegend.appendChild(d); start+=ang;
+    });
+  }
+
+  function apply(){
+    var txt=norm(document.getElementById('f-texto').value);
+    var ano=document.getElementById('f-ano').value;
+    var uf=document.getElementById('f-uf').value;
+    var org=document.getElementById('f-orgao').value;
+
+    function passCGU(r){
+      if(org && org!=='CGU') return false;
+      if(uf && String(r.UF)!==String(uf)) return false;
+      var y=getYearFromDateStr(r.Data); if(ano && y!==ano) return false;
+      if(txt){var hay=norm([r.Titulo,r.Data,r.UF,r.Unidade,r.Orgao,r.Tipo].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+    function passTCU(r){
+      if(org && org!=='TCU') return false;
+      if(ano && String(r.Ano)!==String(ano)) return false;
+      if(txt){var hay=norm([r.Ano,r.Assunto,r.Link,r.Orgao].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+
+    var c=CGU.filter(passCGU), t=TCU.filter(passTCU);
+    document.getElementById('cgu-vis').textContent=c.length;
+    document.getElementById('tcu-vis').textContent=t.length;
+    renderTables(c,t); drawBar(c,t); drawPie(c);
+  }
+
+  // Render inicial
+  renderTables(CGU,TCU); drawBar(CGU,TCU); drawPie(CGU);
+  document.getElementById('cgu-vis').textContent=CGU.length;
+  document.getElementById('tcu-vis').textContent=TCU.length;
+  ['f-texto','f-ano','f-uf','f-orgao'].forEach(function(id){
+    var el=document.getElementById(id); el.addEventListener('input',apply); el.addEventListener('change',apply);
+  });
+
+  // ---- 3ª Seção: formata markdown leve do LLM ----
+  function mdLiteToHtml(src){
+    var s = String(src||'');
+    // escape básico
+    s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // **bold** e *itálico*
+    s = s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    s = s.replace(/\*(.+?)\*/g,'<i>$1</i>');
+    // listas iniciadas por "- "
+    if (/^\s*-\s+/m.test(s)) {
+      s = s.replace(/^(\s*-\s+.+)(?:\n(\s*-\s+.+))*?/gms, function(block){
+        const items = block.split(/\n/).map(l=>l.replace(/^\s*-\s+/,'').trim()).filter(Boolean);
+        return '<ul>'+items.map(it=>'<li>'+it+'</li>').join('')+'</ul>';
+      });
+    }
+    // parágrafos / quebras
+    s = s.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+    return '<p>'+s+'</p>';
+  }
+  var achadosHtml = seed.achados_text && seed.achados_text.trim() ? mdLiteToHtml(seed.achados_text) : '<p class="no-results">Sem conteúdo.</p>';
+  document.getElementById('achados').innerHTML = achadosHtml;
+})();
+</script>
+
+</body>
+</html>
