@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box} body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px} #resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.filters label{font-weight:600;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1} tbody tr:nth-child(even){background:#fafbfc} tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap} a.link:hover{text-decoration:underline}
+.no-results{padding:18px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+/* 3ª seção — melhor formatação do texto do LLM (markdown leve) */
+.achados{line-height:1.55;color:#222}
+.achados p{margin:0 0 10px}
+.achados ul{margin:0 0 10px 18px}
+.achados li{margin:3px 0}
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SEED: JSON do workflow -->
+<script id="seed" type="application/json">{
+  "resumo": "Exibindo os itens mais relevantes por fonte para \"pdp\".",
+  "cgu_tabela": [],
+  "tcu_tabela": [
+    {
+      "Ano": "2025",
+      "Assunto": "Pedido de reexame contra acórdão prolatado em acompanhamento que tem por objeto as Parcerias para o Desenvolvimento Produtivo (PDP) firmadas no âmbito do Ministério da Saúde.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=853114",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Pedido de reexame contra acórdão que apreciou monitoramento de deliberação que tratou de representação a respeito de irregularidades ocorridas em propostas de projeto de Parceria para o Desenvolvimento Produtivo (PDP) para os insumos farmacêuticos ativos (IFA) Entricitabina + Tenofovir.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860913",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Auditoria com o objetivo de apurar fatos relacionados a acordo de cooperação técnico-científico firmado para produção do medicamento citrato de Sildenafila, bem como para fiscalizar Parcerias para o Desenvolvimento Produtivo (PDP).",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=843133",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2017",
+      "Assunto": "Solicitação do Congresso Nacional para realização de fiscalização em contratos de Parceria de Desenvolvimento Produtivo (PDP) aprovados pelo Ministério da Saúde em 2017.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=809049",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2017",
+      "Assunto": "Solicitação do Congresso Nacional a fim de que o TCU realize ato de fiscalização e controle para verificar os contratos de Parceria para o Desenvolvimento Produtivo (PDP) aprovados pelo Ministério da Saúde em 2017.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=786733",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2017",
+      "Assunto": "Solicitação do Congresso Nacional para realização de auditoria nos contratos de Parceria de Desenvolvimento Produtivo (PDP) aprovados pelo Ministério da Saúde em 2017.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=844326",
+      "Órgão": "TCU"
+    }
+  ],
+  "tcu_resumo_extrativo_concatenado": "abstenha-se de celebrar novas PDP até que sejam estabelecidos mecanismos para avaliar objetivamente a conclusão e a eficácia da transferência e da internalização de tecnologia das PDP, bem como para medir a realização dos objetivos definidos no art. 3° do Anexo XCV da Portaria de Consolidação GM/MS 5/2017; 9.7.2. inclua, na norma de regência da política de PDP, critérios específicos para obtenção de preços de referência para as aquisições realizadas após a vigência da PDP, com fundamento no art. 24, VIII da Lei 8.666/1993 ou no art. 75, IX da Lei 14.133/2021, uma vez que os critérios definidos na Instrução Normativa 73, de 31/8/2020 têm se mostrado insuficientes, de modo que sejam adotados parâmetros objetivos para aferição da vantajosidade das aquisições, que contemplem, no mínimo: 9.7.11.1. dar ciência ao Ministério da Saúde, com fundamento no art. 9o, inciso I, da Resolução TCU 315/2020, a fim de evitar a reincidência dos atos praticados, de que as avaliações e decisões da Comissão Técnica de Avaliação (CTA) e do Comitê Deliberativo (CD), adotadas no âmbito do processo seletivo iniciado em 2017, para celebração de parcerias para o desenvolvimento produtivo (PDP), com base em critérios não previstos na norma de regência, a exemplo da inclusão em plataformas tecnológicas, ou da extinção de parceria anterior firmada com a mesma instituição, contrariaram os princípios gerais da transparência e do julgamento objetivo previstos nas leis que regem os processos licitatórios se não houver demonstração documentada de que se tratava de medida indispensável ao êxito da PDP; 9.9. Em relação ao achado que resultou em proposta de deliberação de interesse para análise do presente recurso, ao analisar a economicidade e a vantajosidade das aquisições realizadas no âmbito de uma PDP, em que pese ter reconhecido o esforço da área técnica na realização das análises dos preços ofertados pelas IP, a equipe de fiscalização identificou oportunidade de melhoria em relação a ausência, no âmbito dos projetos de PDP, dos custos relativos aos preços dos produtos e daqueles alusivos à internalização da tecnologia (peça 424, p. 72-75), providência que foi determinada por este Tribunal no âmbito do TC 033.042/2013-6 , que tratou de representação relacionada à PDP firmada entre o entre o Instituto de Tecnologia em Fármacos (Farmanguinhos), vinculado à Fundação Oswaldo Cruz (Fiocruz), e a empresa Libbs Farmacêutica Ltda (item 9.3 do Acórdão 725/2018-TCU-Plenário ): 9.3. determinar ao Ministério da Saúde - na condição de responsável pela condução da política pública de fomento do Complexo Industrial na área de Saúde no âmbito federal, conforme se extrai da Lei 8.080/90 e legislação relacionada -, com base no art. 250, II, do Regimento Interno/TCU, que defina os critérios e as metodologias que deverão ser observados para apuração do valor de transferência de tecnologia ( Know how ), inclusive para fins de fixação de cláusula penal, em observância ao disposto no art. 55, VII, da Lei 8.666/1993, encaminhando ao Tribunal, no prazo de 60 (sessenta) dias, as medidas adotadas e, se for o caso, o cronograma para atendimento desta determinação; 2.9. Diante do exposto, considerando a contratação pelo Ministério da Saúde do Instituto de Pesquisa Econômica Aplicada (Ipea) para realização de estudo que possuía entre os seus objetivos a elaboração de proposta metodológica e de critérios de precificação de tecnologias em saúde no Brasil, a AudSaúde propôs determinar ao Ministério da Saúde, em um novo e improrrogável prazo de sessenta dias, o encaminhamento de cronograma atualizado para dar cumprimento integral ao subitem 9.3 do Acórdão 725/2018-Plenário (peça 424, p. 113, item V, 'd'). 2.11. (...) determinar ao MS que suspenda a celebração de novas PDP até que tenha estabelecido mecanismos para avaliar objetivamente a conclusão e a eficácia da transferência e da internalização de tecnologia das PDP, bem como para medir a realização dos objetivos definidos no art. 3° do Anexo XCV da Portaria de Consolidação. Da factibilidade da aplicação de um modelo de precificação de transferência de tecnologias no âmbito das PDP e a sua consequência para o cumprimento do subitem 9.5.3.4 do Acórdão 2015/2023-TCU-Plenário (peça 443, p. 5-8;\n\nA representação foi julgada parcialmente procedente, por meio do Acórdão 544/2020-TCU-Plenário , o qual ainda indeferiu o requerimento de medida cautelar e determinou à Secretaria de Ciência, Tecnologia e Insumos Estratégicos do Ministério da Saúde (Sctie/MS), atual Secretaria de Ciência, Tecnologia e Inovação e do Complexo Econômico-Industrial da Saúde (Sectics), que adotasse providências para implementar medidas que assegurassem a transferência de tecnologia de produção do IFA para o parceiro público no âmbito das PDPs a serem celebradas, a fim de evitar a dependência do laboratório público em relação ao laboratório privado, caso o laboratório público não fosse o destinatário da transferência de tecnologia para produção do IFA (item 9.3). Por fim, ressalto que acolhi a sugestão do eminente revisor, Ministro Benjamim Zymler, no sentido de modificar a redação do acordão que proponho a este Plenário, deixando ainda mais claro que a determinação contida no subitem 9.3 do Acórdão 544/2020-TCU-Plenário , de minha relatoria (TC- 030.310/2017-2 ), no sentido de assegurar a transferência de tecnologia de produção do insumo farmacêutico ativo (IFA) para o parceiro público no âmbito das Parcerias de Desenvolvimento Produtivo (PDPs) autorizadas pelo Ministério da Saúde, refere-se exclusivamente ao domínio tecnológico necessário para a produção do medicamento e não à transferência da produção do medicamento, propriamente dita, pelo laboratório público . Assim, muito embora, a recorrente/representante tenha alegado que, em um contrato administrativo de PDP, a empresa contratada tem a obrigação de transferir a tecnologia de produção do IFA (além da tecnologia de fabricação do medicamento como produto final), o seu interesse na representação era a determinação do Ministério da Saúde para que reprovasse as propostas de PDP relativas ao IFA entricitabina + tenofovir que não tinham a recorrente como fornecedora da tecnologia. Segundo a recorrente, a obrigação de transferir a tecnologia de produção do IFA (além da tecnologia de fabricação do medicamento como produto final) decorre tanto dos objetivos das PDPs, quanto das disposições do Anexo XCV da Portaria de Consolidação GM/MS 5/2017 que as regulamenta e estabelece a portabilidade tecnológica como um objetivo relevante das PDPs, pois, ao fim do processo, a entidade pública deve ser capaz de transmitir para outra instituição pública todo o conhecimento necessário para a produção do produto (peça 30, p. 12). A recorrente afirma que o acórdão recorrido, além de negar a imperatividade normativa que impõe à instituição pública a absorção de todo o domínio tecnológico necessário para a produção do IFA pareceu se compadecer das considerações trazidas pela unidade jurisdicionada para concluir que para assegurar a absorção de todo o domínio tecnológico necessário à produção de determinado IFA, seria necessário expertise da instituição pública em todas as fases dessa produção, o que só seria cabível caso o laboratório público contasse com equipamentos e pessoal capacitado para essa produção, o que exige investimentos elevados para a verticalização integral da cadeia produtiva no âmbito das instituições públicas, incluindo os gastos para adaptação dos parques industriais, contratação de mão-de-obra especializada e capacitação tecnológica; Por outro lado, caso o objeto da PDP seja a produção do medicamento, apesar da exigência de nacionalização da produção do IFA pelo parceiro privado, não há qualquer normativa quanto à obrigatoriedade de transferência da tecnologia de produção do IFA para o laboratório público, situação em que a transferência de tecnologia para a instituição pública e a capacidade de realizar a portabilidade tecnológica ao final do processo se referem à produção do medicamento.\n\nCuidam os autos de relatório de auditoria, que objetivou apurar os fatos objeto da solicitação do Congresso Nacional, matéria do TC 010.751/2022-0 , relacionados ao Acordo de Cooperação Técnico-Científico 765741-008/2014, firmado entre o Ministério da Saúde (MS) e o Comando da Marinha, para produção do Citrato de Sildenafila, bem como fiscalizar as Parcerias para Desenvolvimento Produtivo (PDP) relativas aos termos de compromisso 15/2012 e 27/2018, firmados com o Laboratório Químico-Farmacêutico do Exército (LQFEx); 3/2018, firmado com o Laboratório Químico-Farmacêutico da Aeronáutica (LAQFA); Atualmente, as Parcerias para o Desenvolvimento Produtivo (PDP) se constituem em um dos instrumentos da Política Nacional de Inovação Tecnológica na Saúde (Pnits), instituída pelo Decreto 9.245, de 20/12/2017, que regulamenta o uso do poder de compra do Estado em contratações e aquisições que envolvam produtos e serviços estratégicos para o Sistema Único de Saúde (SUS) no âmbito do Complexo Econômico-Industrial da Saúde (CEIS). consiste na fase de conclusão do desenvolvimento, transferência e absorção da tecnologia objeto da PDP em condições de produção do produto no país e portabilidade tecnológica por parte da instituição pública. O processo de execução da PDP tem início com a publicação pelo MS da lista de produtos estratégicos para o SUS, a partir da qual as parcerias são estabelecidas para a submissão de propostas de projeto de PDP à Sectics/MS, que, por sua vez, analisará a viabilidade da proposta. A fase III - PDP inicia-se com a demonstração ao MS pela IP do início da etapa de desenvolvimento, transferência e absorção de tecnologia, capacitação industrial e tecnológica, em conjunto com o primeiro fornecimento do produto objeto da PDP ao MS pela instituição pública, ou seja, a primeira compra pública efetiva realizada no âmbito da PDP, por dispensa de licitação, pautada no art. 24, XXXII da Lei 8.666/1993 ou no art. 75, XII da Lei 14.133/2021. Objetivo e questões de auditoria A presente auditoria teve por objetivo apurar os fatos objeto da solicitação do Congresso Nacional encaminhada ao TCU, relacionados ao Acordo de Cooperação Técnico-Científico 765741-008/2014, firmado entre o Ministério da Saúde e o Comando da Marinha, para produção do Citrato de Sildenafila, bem como para fiscalizar as PDP relativas aos termos de compromisso 15/2012 e 27/2018, firmado com o LQFEx; 3/2018, firmado com o LAQFA; As aquisições realizadas no bojo do Acordo de Cooperação Técnico-Científico 765741 008/2014 (TC 36/2013), firmado entre o Ministério da Saúde e o LFM, para produção do Citrato de Sildenafila e dos TC 15/2012 e 27/2018, firmados com o LQFEx para produção de Micofenolato de Sódio, constituem ofensa ao dever de licitar e atendem aos critérios de economicidade e vantajosidade? bem como no que se refere a definição de prazos para conclusão da transferência de tecnologia e para atuação da área técnica da secretaria finalística do Ministério da Saúde (Secretaria de Ciência, Tecnologia, Inovação e Insumos Estratégicos - Sctie) e de colegiados (Comissão Técnica de Avaliação - CTA e Comitê Deliberativo - CD); recomendar ao MS e ao LFM, com fundamento no art. 11 da Resolução TCU 315/2020, e no art. 2o do Decreto 9.203/2017, que adotem medidas necessárias e suficientes para assegurar, no âmbito do TC 36/2013 e do Acordo de Cooperação Técnico-Científico 765741 008/2014, a absorção da transferência de tecnologia referente à produção das dosagens de 25 e 50mg do medicamento Citrato de Sildenafila, com vistas a mitigar os riscos advindos das alterações promovidas no curso da parceria. Em vez disso, a cláusula que previa o fim da PDP foi objeto de ajustes em outubro de 2019, quando o Comitê Deliberativo do MS aprovou a exclusão da condicionante da obrigatoriedade da internalização da etapa fermentativa na fabricação do Insumo Farmacêutico Ativo (IFA), bem como a extensão do cronograma de fase III do projeto para 24 meses a partir de maio de 2021, em detrimento de perda de parte dessa relevante transferência de tecnologia para o país, consoante consta da Ata da Reunião à peça 115, p. 2.\n\nTrata-se de Solicitação do Congresso Nacional pela qual a Comissão de Fiscalização e Controle da Câmara dos Deputados requer ao TCU a realização de fiscalização dos contratos de Parceria de Desenvolvimento Produtivo (PDP) aprovados no Ministério da Saúde em 2017. Após detalhar o resultado ou o andamento de cada um dos processos acima mencionados, a instrução destacou o TC 034.653/2018-0 , Relatório de Acompanhamento (Racom), autuado em cumprimento ao comando do item 9.11 do Acórdão 1730/2017-TCU-Plenário (que apreciou a auditoria objeto do TC 011.547/2014-6 ), o qual determinou a esta unidade técnica que autuasse processo de acompanhamento das PDP firmadas no âmbito do Ministério da Saúde, conferindo especial atenção ao cumprimento das determinações contidas no acórdão e ao efetivo saneamento das falhas apontadas pela equipe que realizou a auditoria. Assim, considerando que o TC 034.653/2018-0 tinha por finalidade acompanhar as Parcerias para o Desenvolvimento Produtivo (PDP) firmadas no âmbito do Ministério da Saúde, conforme determinado no item 9.11 do Acórdão 1730/2017-TCU-Plenário , e ainda se encontrava em aberto, entendeu-se que não havia óbices para que a fiscalização das PDP de 2017, conforme solicitado nesta SCN, fosse incluída no escopo do acompanhamento. b.2) tramita no TCU o processo de representação (TC 018.120/2018-0 ), que trata da aquisição do medicamento Trastuzumabe pelo Ministério da Saúde, para utilização no SUS, por meio da PDP firmada com o Instituto de Tecnologia do Paraná - Tecpar; TC 018.120/2018-0 No que tange ao TC 018.120/2018-0 , após a deliberação adotada pelo Comitê Deliberativo do MS, exarada por meio da Portaria GM/MS 1.508, de 21 de junho de 2022 (peça 187 do TC 018.120/2018-0 ), necessária a promoção de diligência à Pasta da Saúde, no âmbito do TC 018.120/2018-0 , com vistas ao saneamento daqueles autos para o pronunciamento de mérito. Em nova etapa processual, impõe-se a adoção de nova medida saneadora, proposta nos autos do TC 018.120/2018-0 , sobretudo em função da recente publicação, em 21 de junho de 2022, da Decisão do Comitê Deliberativo do MS , que, considerando a avaliação e deliberação das PDP realizada pela Comissão Técnica de Avaliação (CTA) e pelo Comitê Deliberativo (CD), em conformidade com o previsto nos arts. 3o e 4o da Portaria GM/MS 184, de 29 de janeiro de 2021, concluiu pela não continuidade das parcerias que foram objeto de redistribuição durante a gestão do ex-ministro Ricardo Barros (peça 187 do TC 018.120/2018-0 ). CONCLUSÃO Por meio do Acórdão 475/2022-TCU-Plenário , a SCN foi conhecida e foi informado à Comissão de Fiscalização Financeira e Controle da Câmara dos Deputados que já se encontrava autuado no TCU o processo TC 034.653/2018-0 , que tem por objeto o acompanhamento, de modo abrangente, das Parcerias para o Desenvolvimento Produtivo (PDP) firmadas no âmbito do Ministério da Saúde. Quanto ao TC 018.120/2018-0 , após a decisão adotada pelo Comitê Deliberativo do MS, exarada por meio da Portaria GM/MS 1.508, de 21 de junho de 2022 (peça 187 do TC 018.120/2018-0 ), ainda se faz necessária a promoção de diligência à Pasta da Saúde, no âmbito do TC 018.120/2018-0 , com vistas ao saneamento daqueles autos para o pronunciamento de mérito (parágrafos 27-35), não se descartando eventual responsabilização de gestores se os elementos colhidos indicarem esse caminho, o que, se confirmado, envolve prévio contraditório para o exercício da ampla defesa, sem que se tenha controle sobre o tempo que será consumido até a instrução de mérito e subsequente deliberação. a.2) o TC 018.120/2018-0 , em razão da decisão adotada pelo Comitê Deliberativo do MS, exarada por meio da Portaria GM/MS 1.508, de 21 de junho de 2022 (peça 187 do TC 018.120/2018-0 ), bem como da necessidade de promoção de diligência à Pasta da Saúde, com vistas ao saneamento daqueles autos para o pronunciamento de mérito, demandará mais tempo para sua conclusão. autorizar a prorrogação, por 180 dias, nos termos do art. 18, caput , e de seu parágrafo único, da Resolução - TCU 215/2008, do prazo fixado no item 9.4 do Acórdão 475/2022-TCU-Plenário para o atendimento desta SCN, a fim de permitir a conclusão da análise do objeto do TC 018.120/2018-0 ;\n\nCabe à Secretaria de Ciência, Tecnologia e Insumos Estratégicos do Ministério da Saúde (Sctie/MS), de acordo com a Portaria 1.419, de 8/6/2017, que aprovou os Regimentos Internos e o Quadro Demonstrativo de Cargos em Comissão e das Funções de Confiança das Unidades Integrantes do Ministério da Saúde, a ampliação da produção nacional de produtos estratégicos para o SUS, resultantes das Parcerias para o Desenvolvimento Produtivo (PDP). 12. TC 011.777/2014-1 (Solicitação do Congresso Nacional) 24.1 Cuidam os autos de Solicitação do Congresso Nacional encaminhada pelo Senador Pedro Simon, no qual requeria do TCU a realização de auditoria junto ao Ministério da Saúde, relativa a contratos firmados em dezembro de 2013, entre a Fundação para o Remédio Popular (Furp) e as empresas Medtronic e Scitech para fornecimento de marcapassos e stents ao Sistema Único de Saúde - SUS. 24.2 O TCU emitiu o Acórdão 1937/2014-Plenário , de relatoria do Ministro Benjamin Zymler, no qual conhece da solicitação e manda informar ao solicitante que já se encontrava em curso neste Tribunal a Fiscalização 302/2014 (TC 011.547/2014-6 ), cujo objeto era a análise da regularidade das Parcerias para o Desenvolvimento Produtivo na área da Saúde (PDP), a qual passaria a abranger também, em seu escopo, as parcerias firmadas pela Fundação para o Remédio Popular (Furp) com a Meditronic Comercial Ltda. em caráter excepcional, autorizar o Ministério da Saúde a adquirir, no âmbito da parceria ora suspensa conforme determinado no item 9.2.1 deste acórdão, 161.668 frascos-ampola do trastuzumabe 150mg junto ao Instituto de Tecnologia do Paraná, em complementação ao quantitativo adquirido por meio do Contrato 61/2018, quantidade que a Sctie/MS informa ser necessário para o contínuo e regular abastecimento da rede, no curto prazo, nos termos mencionados na Nota Técnica 327/2018-CGCEAF/DAF/SCTIE/MS, adotando como preço máximo de referência, o valor da última aquisição realizada pelo Ministério da Saúde (R$ 938,94), devendo iniciar, de imediato, os procedimentos para a aquisição do referido fármaco para o período subsequente à aquisição ora autorizada; 24.15 Insatisfeito com a decisão, o Instituto de Tecnologia do Paraná (Tecpar) interpôs agravo com o objetivo de \"\"revogar a concessão da medida cautelar que suspendeu a execução da PDP firmada com o Tecpar, além de liberar, imediatamente, os 27,39% relativos a tecnologia, por ser a medida consentânea com o interesse público e com as políticas voltadas para a área da saúde\"\". 24.16 Ato contínuo, por meio do Acórdão 2.919/2018 - Plenário , relatado pelo Ministro Aroldo Cedraz, o TCU conheceu do Agravo interposto, contudo, negou-lhe provimento, mantendo a cautelar previamente concedida e todos os termos do Acórdão 2.300/2018 - Plenário . TC 003.190/2019-6 (Representação) 24.17 A aludida representação, formulada pelo Ministério Público junto ao Tribunal de Contas da União (MPTCU), tratou de possíveis irregularidades nas Parcerias para o Desenvolvimento Produtivo (PDP) firmadas pelo Instituto de Tecnologia em Fármacos da Fundação Oswaldo Cruz (Farmanguinhos/Fiocruz) e pela Fundação Baiana de Pesquisa Científica e Desenvolvimento Tecnológico, Fornecimento e Distribuição de Medicamentos (Bahiafarma) com o laboratório ucraniano Indar S.A para transferência de tecnologia e fornecimento de Insulina Humana Recombinante (NPH). 24.18 Com respaldo em instrumento de cooperação técnica firmado entre os governos do Brasil e da Ucrânia, foi assinado, em 26/3/2006, Acordo de Cooperação Técnica entre a Fundação Oswaldo Cruz (Fiocruz), por meio do Instituto de Tecnologia em Fármacos (Farmanguinhos), e o laboratório ucraniano Indar S.A, tendo por objeto a transferência de tecnologia do Insumo Farmacêutico Ativo (IFA) da insulina e dos medicamentos Insulina Humana Recombinante de ação prolongada (NPH) e Regular. 24.19 Com o advento da Portaria GM/MS 2.531/2014, marco regulatório que estabeleceu a obrigatoriedade de adequação daquele acordo ao regramento das PDP, teria sido firmado entre Farmanguinhos e Indar o Termo de Compromisso 10/2013, dando prosseguimento à relação de cooperação técnico-científica iniciada em 2006. 24.20 A Bahiafarma, por sua vez, assinou no ano de 2017, no âmbito da política de PDP, o Termo de Compromisso 1/2017 com o laboratório Indar para produção e fornecimento de insulina humana recombinante ao Ministério da Saúde. 24.21 Entre os indícios irregularidade apontados na representação estão:\n\nTrata-se de Solicitação do Congresso Nacional por meio da qual a Comissão de Fiscalização e Controle da Câmara dos Deputados requer ao TCU a realização de fiscalização dos contratos de Parceria de Desenvolvimento Produtivo (PDP) aprovados no Ministério da Saúde em 2017 (Proposta de Solicitação de Fiscalização/PFC 42/2021, de autoria do Deputado Federal Jorge Solla). (...) Instruídos os autos nesta unidade especializada e submetidos ao Relator, o Tribunal, em sessão plenária de 9/3/2022, assim deliberou por meio do Acórdão 475/2022-TCU-Plenário , da relatoria do Ministro Vital do Rêgo (peça 20): 9.1. tramita no TCU o processo de Representação TC 018.120/2018-0 , que trata da aquisição do medicamento Trastuzumabe pelo Ministério da Saúde, para utilização no SUS, por meio da PDP firmada em 2017 com o Instituto de Tecnologia do Paraná (Tecpar), cuja execução está suspensa por determinação cautelar desta Corte de Contas; 9.2.4. estender os atributos processuais de Solicitação do Congresso Nacional, definidos no art. 5o da Resolução TCU 215/2008, aos processos TC 034.653/2018-0 , TC 018.120/2018-0 e TC 003.190/2019-6 , juntando-lhes cópia do presente acórdão e informando os respectivos Relatores e a unidade técnica responsável pela instrução da necessidade de que, no julgamento de mérito, sejam juntadas cópias das deliberações a estes autos; 9.4. A instrução de 26/10/2022 (peça 27) atualizou o andamento dos referidos processos, informando-se que os TC 034.653/2018-0 e o TC 003.190/2019-6 já haviam tido sua análise concluída nesta unidade especializada e propôs comunicar à Comissão de Fiscalização Financeira e Controle da Câmara dos Deputados (CFFC/CD) que, tão logo esses processos fossem apreciados, as deliberações seriam encaminhadas à comissão. informar à Comissão de Fiscalização Financeira e Controle da Câmara dos Deputados, em complemento ao Acórdão 475/2022-TCU-Plenário , que: 9.1.1 o TC 034.653/2018-0 e o TC 003.190/2019-6 já possuem análise de mérito concluída e, tão logo sejam apreciados pelo TCU, as deliberações ser-lhe-ão encaminhadas; 9.1.2 o TC 018.120/2018-0 se encontra em fase de saneamento; 9.2. autorizar a prorrogação, por 180 (cento e oitenta) dias do prazo fixado no item 9.4 do Acórdão 475/2022-TCU-Plenário para o atendimento desta SCN, a fim de permitir a conclusão da análise do objeto do TC 018.120/2018-0 ; De se considerar ainda o tempo de resposta do Ministério da Saúde às demandas do Tribunal, ao que a UJ esteve sobrecarregada em função da pandemia da Covid-19, tendo havido constantes períodos de dilação de prazo para atendimento das solicitações e, por último, a necessidade de se priorizar a instrução de processos que poderiam ser alcançados pela prescrição, à vista da edição da Resolução-TCU 344/2022. Por isso, excepcionalmente, entende-se necessário propor a autorização de prorrogação do prazo para atendimento desta Solicitação do Congresso Nacional, por 270 dias, a contar do término do prazo fixado no item 9.2 do Acórdão 2556/2022-TCU-Plenário . Assinala-se que o item 9.3 do Acórdão 475/2022-TCU-Plenário estendeu os atributos processuais de Solicitação do Congresso Nacional, definidos no art. 5o da Resolução TCU 215/2008, ao processo TC 018.120/2018-0 e foi juntada aos referidos autos a cópia da deliberação (peça 181 daquele TC), de modo que se considera que esta unidade e o Relator estão cientes da necessidade de que, no julgamento de mérito, seja juntada cópia da deliberação a esta SCN para que a comissão solicitante seja informada da decisão. em complemento aos Acórdãos 475/2022-TCU-Plenário e 2556/2022-TCU-Plenário, ambos da relatoria do Ministro Vital do Rêgo, encaminhar à Comissão de Fiscalização Financeira e Controle da Câmara dos Deputados o Acórdão 2576/2022-TCU-Plenário , da relatoria do Ministro Benjamin Zymler (peça 33), proferido no TC 003.190/2019-6 , e o Acórdão 2015/2023-TCU-Plenário , da relatoria do Ministro Benjamin Zymler (peça 37), proferido no TC 034.653/2018-0 ; autorizar, excepcionalmente, a prorrogação, por 270 dias, contados do término do prazo fixado no item 9.2 do Acórdão 2556/2022-TCU-Plenário , para o atendimento desta SCN, a fim de permitir a conclusão da apreciação do TC 018.120/2018-0 ; juntar cópia do acórdão que vier a ser prolatado aos autos do TC 018.120/2018-0 , de modo que o Relator, no julgamento de mérito, determine a juntada, a esta SCN, de cópia da deliberação que vier a ser adotada para que a comissão solicitante seja informada da decisão.",
+  "achados_text": "**ACHADOS**\n\n1.  O TCU analisou Parcerias de Desenvolvimento Produtivo (PDPs) no Ministério da Saúde, identificando falhas na **transferência de tecnologia** do Insumo Farmacêutico Ativo (IFA) para parceiros públicos. O Acórdão 544/2020-TCU-Plenário determinou medidas para assegurar essa transferência, visando evitar a dependência de laboratórios públicos em relação aos privados. Houve questionamentos sobre a necessidade de expertise em todas as fases da produção do IFA, o que demandaria **investimentos elevados**. O Tribunal também verificou a necessidade de diligências e acompanhamento de processos, como o TC 018.120/2018-0.\n\n2.  O TCU constatou **irregularidades** em processos seletivos para PDPs, com critérios não previstos na norma de regência, contrariando princípios de **transparência** e julgamento objetivo. Foi autorizada a aquisição de trastuzumabe pelo Ministério da Saúde, em complementação a contrato anterior, com preço de referência de R$ 938,94 por frasco-ampola. O Tribunal também analisou a economicidade e vantajosidade das aquisições em PDPs, identificando oportunidades de melhoria na ausência de custos relativos à internalização da tecnologia.\n\n**FRAGILIDADES**\n\n1.  A ausência de **critérios claros** e transparentes nos processos seletivos para PDPs, com a utilização de critérios não previstos em lei, comprometeu a **objetividade** e a isonomia. A falta de **monitoramento** adequado da transferência de tecnologia do IFA e a não definição precisa do escopo da transferência, geraram riscos de dependência tecnológica e de não cumprimento dos objetivos das PDPs. A falta de **comprovação** documental de medidas indispensáveis ao êxito das PDPs.\n\n2.  A ausência de **custos** relativos aos preços dos produtos e à internalização da tecnologia nos projetos de PDPs, dificultou a avaliação da economicidade e vantajosidade das aquisições. A falta de **detalhamento** sobre a transferência de tecnologia do IFA e a capacidade de portabilidade tecnológica, gerou riscos de não atingimento dos objetivos das PDPs. A falta de **acompanhamento** e fiscalização adequados das PDPs.\n\n**RECOMENDAÇÕES**\n\n1.  **Assegurar** a transferência de tecnologia de produção do IFA para o parceiro público no âmbito das PDPs (Sectics, prazo: a definir, evidência: relatório).\n2.  **Implementar** medidas que assegurem a transferência de tecnologia de produção do IFA (Sctie/MS, prazo: a definir, evidência: relatório).\n3.  **Aprimorar** os critérios de seleção e avaliação das PDPs, garantindo a transparência e o julgamento objetivo (Ministério da Saúde, prazo: a definir, evidência: normativo).\n4.  **Incluir** os custos relativos aos preços dos produtos e à internalização da tecnologia nos projetos de PDPs (Ministério da Saúde, prazo: a definir, evidência: relatório).\n5.  **Encaminhar** cronograma atualizado para dar cumprimento integral ao subitem 9.3 do Acórdão 725/2018-Plenário (Ministério da Saúde, prazo: 60 dias, evidência: cronograma).\n"
+}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-cgu">
+        <thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-tcu">
+        <thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3ª Seção -->
+  <div class="card section">
+    <h2>Achados/Fragilidades TCU</h2>
+    <div id="achados" class="achados"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Helpers */
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+  function escapeRegExp(s){return String(s).replace(/[-\/^$*+?.()|[\]{}]/g,'\\$&');}
+  function getYearFromDateStr(s){var m=String(s||'').match(/\b(\d{4})\b/);return m?m[1]:'';}
+  function textOrEmpty(v){return (v===0? '0' : (v==null? '' : String(v)));}
+
+  // Lê seed
+  var seed = {resumo:'', cgu_tabela:[], tcu_tabela:[], achados_text:'', tcu_resumo_extrativo_concatenado:''};
+  try{ seed = JSON.parse(document.getElementById('seed').textContent||'{}'); }catch(e){}
+
+  // Realce de termos pesquisados
+  var themeMatch=(seed.resumo||'').match(/"([^"]+)"/);
+  var SEARCH_PHRASE=themeMatch?themeMatch[1].trim():'';
+  var STOP=new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que','di','du']);
+  var TERMS=(SEARCH_PHRASE?SEARCH_PHRASE.split(/\s+/):[]).filter(function(w){return w && w.length>=2 && !STOP.has(norm(w));});
+  var DIA={'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  function diacriticPart(s){return s.split('').map(function(ch){var lc=ch.toLowerCase();if(DIA[lc])return DIA[lc]; if(/\s/.test(ch))return '\\s+'; return escapeRegExp(ch);}).join('');}
+  function buildSearchRegex(){var parts=[]; if(SEARCH_PHRASE)parts.push(diacriticPart(SEARCH_PHRASE)); TERMS.forEach(function(t){parts.push(diacriticPart(t));}); if(!parts.length)return null; return new RegExp('(?:^|\\b)(' + parts.join('|') + ')(?=\\b|$)','gi');}
+  var SEARCH_RE = buildSearchRegex();
+  function highlightBold(txt){var s=textOrEmpty(txt); if(!SEARCH_RE) return s; return s.replace(SEARCH_RE, function(m){return '<b class="hl">'+m+'</b>';});}
+
+  // Título/resumo
+  document.title='Painel de '+(SEARCH_PHRASE?SEARCH_PHRASE:'Auditoria');
+  document.getElementById('titulo').textContent=document.title;
+  document.getElementById('resumo').textContent=textOrEmpty(seed.resumo);
+
+  // Mapeia tabelas
+  var CGU=(seed.cgu_tabela||[]).map(function(x){
+    return {_src:'CGU', Titulo:textOrEmpty(x['Título']), Data:textOrEmpty(x['Data']),
+            UF:(x.hasOwnProperty('UF')?x['UF']:''), Unidade:textOrEmpty(x['Unidade Auditada']),
+            Orgao:textOrEmpty(x['Órgão']||'CGU'), Tipo:textOrEmpty(x['Tipo de Serviço']), Link:textOrEmpty(x['Link'])};
+  });
+  var TCU=(seed.tcu_tabela||[]).map(function(x){
+    return {_src:'TCU', Ano:textOrEmpty(x['Ano']), Assunto:textOrEmpty(x['Assunto']),
+            Link:(x.hasOwnProperty('Link')?x['Link']:''), Orgao:textOrEmpty(x['Órgão']||'TCU')};
+  }).sort(function(a,b){return (parseInt(b.Ano||0,10)||0)-(parseInt(a.Ano||0,10)||0);});
+
+  // Totais
+  document.getElementById('cgu-tot').textContent=CGU.length;
+  document.getElementById('tcu-tot').textContent=TCU.length;
+
+  // Filtros
+  var fTxt=document.getElementById('f-texto'), fAno=document.getElementById('f-ano'), fUF=document.getElementById('f-uf'), fOrg=document.getElementById('f-orgao');
+  var yearSet={}; CGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(y) yearSet[y]=true;}); TCU.forEach(function(r){var y=r.Ano; if(y) yearSet[y]=true;});
+  Object.keys(yearSet).sort(function(a,b){return b-a;}).forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;fAno.appendChild(o);});
+  var ufSet={}; CGU.forEach(function(r){var u=(r.UF!=null && r.UF!=='N/A')?String(r.UF):''; if(u) ufSet[u]=true;});
+  Object.keys(ufSet).sort().forEach(function(u){var o=document.createElement('option');o.value=u;o.textContent=u;fUF.appendChild(o);});
+
+  var cguBody=document.querySelector('#tbl-cgu tbody');
+  var tcuBody=document.querySelector('#tbl-tcu tbody');
+
+  function renderTables(rowsCGU,rowsTCU){
+    // CGU
+    cguBody.innerHTML='';
+    if(!rowsCGU.length){var tr=document.createElement('tr');var td=document.createElement('td');
+      td.colSpan=6;td.className='no-results';td.textContent='Nenhum registro para exibir.';tr.appendChild(td);cguBody.appendChild(tr);
+    }else{
+      rowsCGU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+highlightBold(r.Titulo)+'</td><td>'+r.Data+'</td><td>'+r.UF+'</td><td>'+r.Unidade+'</td><td>'+r.Tipo+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        cguBody.appendChild(tr);
+      });
+    }
+    // TCU
+    tcuBody.innerHTML='';
+    if(!rowsTCU.length){var tr2=document.createElement('tr');var td2=document.createElement('td');
+      td2.colSpan=3;td2.className='no-results';td2.textContent='Nenhum registro para exibir.';tr2.appendChild(td2);tcuBody.appendChild(tr2);
+    }else{
+      rowsTCU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.Ano+'</td><td>'+highlightBold(r.Assunto)+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener noreferrer">Abrir</a>':'')+'</td>';
+        tcuBody.appendChild(tr);
+      });
+    }
+  }
+
+  // Gráficos
+  var bar=document.getElementById('bar'), pie=document.getElementById('pie');
+  var barLegend=document.getElementById('bar-legend'), pieLegend=document.getElementById('pie-legend');
+  function drawBar(rowsCGU,rowsTCU){
+    var ctx=bar.getContext('2d'); ctx.clearRect(0,0,bar.width,bar.height); barLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data); if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].CGU++;});
+    rowsTCU.forEach(function(r){var y=r.Ano; if(!y) return; if(!agg[y]) agg[y]={CGU:0,TCU:0}; agg[y].TCU++;});
+    var labels=Object.keys(agg).sort(function(a,b){return a-b;});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',bar.width/2,bar.height/2);return;}
+    var pad={t:20,r:16,b:40,l:28}, w=bar.width-pad.l-pad.r, h=bar.height-pad.t-pad.b, max=1;
+    labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});
+    ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();
+    ctx.fillStyle='#555';ctx.textAlign='right';
+    for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}
+    var groupW=w/labels.length, barW=Math.max(8,groupW*0.35);
+    var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu')||'#0a9396';
+    var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu')||'#94d2bd';
+    labels.forEach(function(y,i){
+      var x=pad.l+i*groupW+groupW/2;
+      var hCGU=(agg[y].CGU/max)*h, hTCU=(agg[y].TCU/max)*h;
+      ctx.fillStyle=String(cguColor).trim(); ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);
+      ctx.fillStyle=String(tcuColor).trim(); ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);
+      ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);
+    });
+    function leg(color,text){var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+color+'"></span>'+text;barLegend.appendChild(d);}
+    leg(String(cguColor).trim(),'CGU'); leg(String(tcuColor).trim(),'TCU');
+  }
+  function drawPie(rowsCGU){
+    var ctx=pie.getContext('2d'); ctx.clearRect(0,0,pie.width,pie.height); pieLegend.innerHTML='';
+    var agg={}; rowsCGU.forEach(function(r){var u=r.UF||'N/A'; agg[u]=(agg[u]||0)+1;});
+    var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});
+    if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',pie.width/2,pie.height/2);return;}
+    var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];
+    var total=labels.reduce(function(s,k){return s+agg[k];},0);
+    var start=-Math.PI/2, cx=pie.width/2, cy=pie.height/2, r=Math.min(cx,cy)-14;
+    labels.forEach(function(label,i){
+      var val=agg[label], ang=(val/total)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+ang); ctx.closePath(); ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+      var pct=((val/total)*100).toFixed(1)+'%';
+      var d=document.createElement('div'); d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';
+      pieLegend.appendChild(d); start+=ang;
+    });
+  }
+
+  function apply(){
+    var txt=norm(document.getElementById('f-texto').value);
+    var ano=document.getElementById('f-ano').value;
+    var uf=document.getElementById('f-uf').value;
+    var org=document.getElementById('f-orgao').value;
+
+    function passCGU(r){
+      if(org && org!=='CGU') return false;
+      if(uf && String(r.UF)!==String(uf)) return false;
+      var y=getYearFromDateStr(r.Data); if(ano && y!==ano) return false;
+      if(txt){var hay=norm([r.Titulo,r.Data,r.UF,r.Unidade,r.Orgao,r.Tipo].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+    function passTCU(r){
+      if(org && org!=='TCU') return false;
+      if(ano && String(r.Ano)!==String(ano)) return false;
+      if(txt){var hay=norm([r.Ano,r.Assunto,r.Link,r.Orgao].join(' ')); if(hay.indexOf(txt)===-1) return false;}
+      return true;
+    }
+
+    var c=CGU.filter(passCGU), t=TCU.filter(passTCU);
+    document.getElementById('cgu-vis').textContent=c.length;
+    document.getElementById('tcu-vis').textContent=t.length;
+    renderTables(c,t); drawBar(c,t); drawPie(c);
+  }
+
+  // Render inicial
+  renderTables(CGU,TCU); drawBar(CGU,TCU); drawPie(CGU);
+  document.getElementById('cgu-vis').textContent=CGU.length;
+  document.getElementById('tcu-vis').textContent=TCU.length;
+  ['f-texto','f-ano','f-uf','f-orgao'].forEach(function(id){
+    var el=document.getElementById(id); el.addEventListener('input',apply); el.addEventListener('change',apply);
+  });
+
+  // ---- 3ª Seção: formata markdown leve do LLM ----
+  function mdLiteToHtml(src){
+    var s = String(src||'');
+    // escape básico
+    s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // **bold** e *itálico*
+    s = s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    s = s.replace(/\*(.+?)\*/g,'<i>$1</i>');
+    // listas iniciadas por "- "
+    if (/^\s*-\s+/m.test(s)) {
+      s = s.replace(/^(\s*-\s+.+)(?:\n(\s*-\s+.+))*?/gms, function(block){
+        const items = block.split(/\n/).map(l=>l.replace(/^\s*-\s+/,'').trim()).filter(Boolean);
+        return '<ul>'+items.map(it=>'<li>'+it+'</li>').join('')+'</ul>';
+      });
+    }
+    // parágrafos / quebras
+    s = s.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+    return '<p>'+s+'</p>';
+  }
+  var achadosHtml = seed.achados_text && seed.achados_text.trim() ? mdLiteToHtml(seed.achados_text) : '<p class="no-results">Sem conteúdo.</p>';
+  document.getElementById('achados').innerHTML = achadosHtml;
+})();
+</script>
+
+</body>
+</html>
