@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box} body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none}
+.no-results{padding:18px;text-align:center;color:var(--muted);font-style:italic}
+.achados{line-height:1.55;color:#222}
+.achados ul{margin:0 0 10px 18px}
+.achados li{margin:3px 0}
+</style>
+</head>
+<body>
+<script id="seed" type="application/json">{
+  "resumo": "Exibindo os itens mais relevantes por fonte para \"saude indigena\".",
+  "cgu_tabela": [
+    {
+      "Título": "Relatório 1505974 - Edital do DSEI Interior Sul (SC) para locação de veículos utilizados na saúde indígena",
+      "Data": "10/06/2024",
+      "UF": "SC",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Interior Sul",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1506549"
+    },
+    {
+      "Título": "Relatório de Avaliação nº 1415360 - DSEI Yanomami  Governança das atividades de saúde indígena 2021 a 2023 - Estado de Roraima",
+      "Data": "19/04/2024",
+      "UF": "RR",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Yanomami",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1415570"
+    },
+    {
+      "Título": "Relatório nº 1415393 - Distrito Sanitário Especial Indígena - Leste (Dsei-LRR) - Avaliação da governança e da gestão das atividades de saúde indígena - Roraima - 2021 a 2023",
+      "Data": "19/02/2024",
+      "UF": "RR",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Leste Roraima",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/1415628"
+    },
+    {
+      "Título": "Relatório de Avaliação dos Resultados da Gestão nº 201900579 - Secretaria Especial de Saúde Indígena",
+      "Data": "04/12/2020",
+      "UF": "DF",
+      "Unidade Auditada": "Ministério da Saúde",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/892985"
+    },
+    {
+      "Título": "RDE N° 201800514 - Promoção, Proteção e Recuperação da Saúde Indígena no Município de Itaituba/PA",
+      "Data": "13/10/2019",
+      "UF": "PA",
+      "Unidade Auditada": "Distrito Sanitário Especial Indígena - Rio Tapajós",
+      "Tipo de Serviço": "Apuração",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/856403"
+    },
+    {
+      "Título": "Relatório de Auditoria Anual de Contas nº 201800002 - Secretaria Especial de Saúde Indigena - exercício de 2017",
+      "Data": "24/10/2018",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/857179"
+    },
+    {
+      "Título": "Relatório de Auditoria Anual de Contas - 201600605 - Secretaria Especial de Saúde Indígena - SESAI - Exercício 2015",
+      "Data": "18/11/2016",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/860307"
+    },
+    {
+      "Título": "Relatório de Auditoria Anual de Contas - Exercício 2012 - SECRETARIA ESPECIAL DE SAUDE INDIGENA - SE",
+      "Data": "16/09/2016",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/862964"
+    },
+    {
+      "Título": "Relatório 201408919 - Secretaria Especial de Saúde Indígena/MS",
+      "Data": "16/09/2016",
+      "UF": "DF",
+      "Unidade Auditada": "Secretaria de Saúde Indígena",
+      "Tipo de Serviço": "Avaliação",
+      "Órgão": "CGU",
+      "Link": "https://ecgu.cgu.gov.br/relatorio/862053"
+    }
+  ],
+  "tcu_tabela": [
+    {
+      "Ano": "2099",
+      "Assunto": "Representação sobre possíveis irregularidades em pregão eletrônico que teve por objeto o registro de preços para contratação de empresa especializada na prestação de serviço de locação de veículos tipo Pick-up e Van, para atender demandas de transporte terrestre.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=873880",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Representação sobre possíveis irregularidades em pregão eletrônico cujo objeto é a contratação de empresa especializada nos serviços de transporte aéreo.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=878164",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2024",
+      "Assunto": "Acompanhamento da elaboração da proposta de Plano Plurianual (PPA) para o período de 2024 a 2027.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=851865",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Solicitação do Congresso Nacional em que se requer a realização de auditoria com o objetivo de avaliar a regularidade dos contratos e da atuação da Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS) desde a sua criação.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=845068",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Representação, com pedido de medida cautelar, sobre possíveis irregularidades em pregão eletrônico para registro de preços visando contratar serviços de transporte aéreo para emprego em missões de assistência à saúde indígena. Análise de resposta a oitiva prévia.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=835473",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Solicitação do Congresso Nacional para a realização de auditoria na execução orçamentária da Secretaria Especial de Saúde Indígena para o enfrentamento da pandemia da Covid-19.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=823732",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Solicitação do Congresso Nacional em que se requer a realização de fiscalização dos recursos oriundos da Medida Provisória 1168/2023, que abre crédito extraordinário para atendimento de medidas emergenciais necessárias à proteção da vida, da saúde e da segurança das comunidades indígenas.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=874497",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2022",
+      "Assunto": "Pedido de prorrogação de prazo para a finalização da auditoria realizada em decorrência de solicitação do congresso nacional, referente à execução orçamentária, no âmbito da SESAI, para o enfrentamento da pandemia da Covid-19.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=786586",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2021",
+      "Assunto": "3o Ciclo do Acompanhamento do funcionamento das estruturas de governança e de gestão da Tecnologia da Informação e Comunicações - TIC, no âmbito do Ministério da Saúde - MS, no período de junho de 2021 a abril de 2022.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=801373",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2021",
+      "Assunto": "Solicitação do Congresso Nacional em que o então Presidente da CPI da pandemia, ao comunicar o encerramento dos trabalhos da referida Comissão e encaminhar cópia do relatório final a este TCU, requer: i) realização de auditoria acerca da contratação da vacina Covaxin; ii) informações sobre o andamento dos TCs 025.828/2021-5 e 037.065/2019-0, que versam sobre a contratação da VTCLog; e iii) apuração da realização de diversas reuniões no âmbito do Ministério da Saúde MS, envolvendo gestores daquele órgão e empresas farmacêuticas, sem o devido registro em ata.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=789186",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2017",
+      "Assunto": "Recurso de reconsideração interposto por Tânia Maria Nunes de Araújo Alencar, ex-Presidente do Instituto de Cooperação Pró-Vida, contra o Acórdão 8.667/2017- TCU-1a Câmara, que julgou irregulares suas contas e condenou-a em débito em razão de irregularidades no Convênio no 368/2002, celebrado entre o instituto e a Fundação Nacional de Saúde, no valor histórico de R$ 2.052.038,56.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=783308",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2004",
+      "Assunto": "Recurso de reconsideração interposto por José Garrofe Dórea e Timothy Martin Mulholland contra decisão que julgou irregulares suas contas. Convênio Funasa 1.326/2004.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=870049",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "1905",
+      "Assunto": "Representação sobre possíveis irregularidades em pregão eletrônico para contratação de serviços de fornecimento de refeições destinadas aos pacientes indígenas e acompanhantes em tratamento de saúde nas Casas de Apoio à Saúde Indígena de Redenção e São Felix do Xingu. Análise de oitivas e diligências.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=840758",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2025",
+      "Assunto": "Representação acerca de possíveis irregularidades em contratação direta de prestação de serviços especializados de locação de aeronaves de asa fixa e rotativa, com o objetivo de subsidiar as atividades de apoio logístico relacionadas à distribuição de cestas de alimentos na Terra Indígena Yanomami.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=883386",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2025",
+      "Assunto": "Representação sobre possíveis irregularidades ocorridas em pregão eletrônico cujo objeto é a contratação de serviços continuados de manutenção dos sistemas de abastecimento de água no âmbito do Distrito Sanitário de Especial Indígena Kaiapó do Pará.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=883668",
+      "Órgão": "TCU"
+    },
+    {
+      "Ano": "2023",
+      "Assunto": "Solicitação do Congresso Nacional, em que se requer a realização de fiscalização dos recursos oriundos da Medida Provisória 1.168/2023, que abriu crédito extraordinário para atendimento de medidas emergenciais necessárias à proteção da vida, da saúde e da segurança das comunidades indígenas.",
+      "Link": "https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=828656",
+      "Órgão": "TCU"
+    }
+  ],
+  "achados_tcu_text": "",
+  "achados_cgu_text": ""
+}</script>
+<div class="container">
+  <header><h1>Painel de Auditoria</h1><p id="resumo"></p></header>
+
+  <!-- 1) CGU -->
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-cgu">
+        <thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2) TCU -->
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap">
+      <table id="tbl-tcu">
+        <thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3) Achados/Fragilidades TCU -->
+  <div class="card section"><h2>Achados/Fragilidades TCU</h2><div id="achados-tcu" class="achados"></div></div>
+
+  <!-- 4) Achados/Fragilidades CGU -->
+  <div class="card section"><h2>Achados/Fragilidades CGU</h2><div id="achados-cgu" class="achados"></div></div>
+</div>
+
+<script>
+(function(){
+  function textOrEmpty(v){return (v===0? '0' : (v==null? '' : String(v)));}
+
+  var seed = {resumo:'', cgu_tabela:[], tcu_tabela:[], achados_tcu_text:'', achados_cgu_text:''};
+  try{ seed = JSON.parse(document.getElementById('seed').textContent||'{}'); }catch(e){}
+
+  document.getElementById('resumo').textContent=textOrEmpty(seed.resumo);
+
+  var cguBody=document.querySelector('#tbl-cgu tbody');
+  var tcuBody=document.querySelector('#tbl-tcu tbody');
+
+  function renderTables(CGU,TCU){
+    // CGU
+    cguBody.innerHTML='';
+    if(!CGU.length){ cguBody.innerHTML='<tr><td class="no-results" colspan="6">Nenhum registro para exibir.</td></tr>'; }
+    else{
+      CGU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r["Título"]+'</td><td>'+r.Data+'</td><td>'+r.UF+'</td><td>'+r["Unidade Auditada"]+'</td><td>'+r["Tipo de Serviço"]+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener">Abrir</a>':'')+'</td>';
+        cguBody.appendChild(tr);
+      });
+    }
+    // TCU
+    tcuBody.innerHTML='';
+    if(!TCU.length){ tcuBody.innerHTML='<tr><td class="no-results" colspan="3">Nenhum registro para exibir.</td></tr>'; }
+    else{
+      TCU.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.Ano+'</td><td>'+r.Assunto+'</td><td>'+(r.Link?'<a class="link" href="'+r.Link+'" target="_blank" rel="noopener">Abrir</a>':'')+'</td>';
+        tcuBody.appendChild(tr);
+      });
+    }
+    document.getElementById('cgu-vis').textContent=CGU.length;
+    document.getElementById('tcu-vis').textContent=TCU.length;
+    document.getElementById('cgu-tot').textContent=CGU.length;
+    document.getElementById('tcu-tot').textContent=TCU.length;
+  }
+
+  function mdLiteToHtml(src){
+    var s = String(src||'');
+    s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s = s.replace(/**(.+?)**/g,'<b>$1</b>').replace(/*(.+?)*/g,'<i>$1</i>');
+    if (/^s*-s+/m.test(s)) {
+      s = s.replace(/^(s*-s+.+)(?:
+(s*-s+.+))*?/gms, function(block){
+        var items = block.split(/
+/).map(function(l){return l.replace(/^s*-s+/,'').trim();}).filter(Boolean);
+        return '<ul>'+items.map(function(it){return '<li>'+it+'</li>';}).join('')+'</ul>';
+      });
+    }
+    s = s.replace(/
+{2,}/g,'</p><p>').replace(/
+/g,'<br>');
+    return '<p>'+s+'</p>';
+  }
+
+  renderTables(seed.cgu_tabela||[], (seed.tcu_tabela||[]).sort(function(a,b){return (parseInt(b.Ano||0,10)||0)-(parseInt(a.Ano||0,10)||0);}));
+  document.getElementById('achados-tcu').innerHTML = seed.achados_tcu_text?.trim() ? mdLiteToHtml(seed.achados_tcu_text) : '<p class="no-results">Sem conteúdo.</p>';
+  document.getElementById('achados-cgu').innerHTML = seed.achados_cgu_text?.trim() ? mdLiteToHtml(seed.achados_cgu_text) : '<p class="no-results">Sem conteúdo.</p>';
+})();
+</script>
+</body>
+</html>
