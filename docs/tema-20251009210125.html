@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px}
+#resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.filter-group{flex:1 1 220px}
+.filters label{font-weight:600;display:block;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.btn-clear{padding:10px 16px;border:1px solid var(--b);border-radius:8px;background:#fff;cursor:pointer;color:var(--pri);font-weight:600}
+.btn-clear:hover{background:var(--bg)}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+td{min-width:120px}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap}
+a.link:hover{text-decoration:underline}
+.no-results,.loading{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script id="seed" type="application/json">{"resumo":"Exibindo os itens mais relevantes por fonte para \"PDP — Parcerias para o Desenvolvimento Produtivo\".","cgu_tabela":[],"tcu_tabela":[{"Ano":"2063","Assunto":"Relatório de auditoria na contratação de suporte logístico pela Emgeprom no âmbito do Programa Classe Tamandaré.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=799816","Órgão":"TCU"},{"Ano":"2047","Assunto":"Solicitação do Congresso Nacional ao TCU para que seja avaliada a regularidade das Parcerias para o Desenvolvimento Produtivo (PDPs) nos laboratórios das Forças Armadas, nos últimos 10 anos.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=802189","Órgão":"TCU"},{"Ano":"2025","Assunto":"Acompanhamento de conformidade no âmbito da fiscalização contínua de aquisições, por meio de licitações ou contratações diretas, realizadas com recursos públicos federais ou paraestatais.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=894650","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação a respeito de possíveis irregularidades ocorridas em concorrência cujo objeto é a contratação de empresa para execução de obras de conclusão de três escolas municipais.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=893790","Órgão":"TCU"},{"Ano":"2025","Assunto":"Pedido de reexame interposto contra acórdão que considerou improcedente a representação proposta pela ora recorrente noticiou possível irregularidade na atuação de membros eleitos da diretoria executiva após a suposta expiração de seus mandatos no órgão diretivo.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=890847","Órgão":"TCU"},{"Ano":"2025","Assunto":"Pedido de reexame interposto contra acórdão proferido sede de monitoramento de determinações decorrentes de auditoria realizada nos serviços de transporte escolar prestados pelos municípios de Marechal Deodoro/AL e Penedo/AL.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=888578","Órgão":"TCU"},{"Ano":"2025","Assunto":"Pedido de reexame interposto contra acórdão proferido em processo de representação acerca de supostas irregularidades em pregão eletrônico para a contratação de serviços de alimentação coletiva, visando a atender às demandas do restaurante universitário do Campus de Sinop/MT.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=888851","Órgão":"TCU"},{"Ano":"2025","Assunto":"Denúncia a respeito de possíveis irregularidades na contratação de cooperativa de trabalho especializada em serviços terceirizados de mão-de-obra.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887146","Órgão":"TCU"},{"Ano":"2025","Assunto":"Denúncia a respeito de possíveis irregularidades ocorridas em ato de responsabilidade da Empresa Brasileira de Administração de Petróleo e Gás Natural S.A - Pré-Sal Petróleo S.A. (PPSA).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887344","Órgão":"TCU"},{"Ano":"2025","Assunto":"Auditoria nas bases de dados do Abono Salarial e Seguro Desemprego (e-Social).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887630","Órgão":"TCU"},{"Ano":"2025","Assunto":"Solicitação do Congresso Nacional para fiscalização acerca da gestão e transparência do Programa Nacional de Alimentação Escolar (Pnae).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887419","Órgão":"TCU"},{"Ano":"2025","Assunto":"Denúncia a respeito de possíveis irregularidades ocorridas no Chamamento Público para contratação de Solução de Gestão de Experiência do Cliente (Customer Experience - CX), na modalidade Software como Serviço (SaaS) incluindo subscrição da plataforma, implantação, integração, configuração, customização, parametrização, manutenção, suporte técnico, operacionalização da solução, e treinamento, pelo prazo de cinco anos, com possibilidade de prorrogação por igual período.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887957","Órgão":"TCU"},{"Ano":"2025","Assunto":"Solicitação do Congresso Nacional para realização de auditoria acerca da celebração e execução de contratos firmados entre órgãos públicos federais e a empresa Agência Nacional de Propaganda Ltda.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887428","Órgão":"TCU"},{"Ano":"2025","Assunto":"Referendo de medida cautelar.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=887890","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação acerca de possíveis irregularidades em contrato de comodato de terreno destinado a estacionamento rotativo de caminhões no porto de Santos/SP, em contrato de parceria público-privada para construção e operação da ligação rodoviária (túnel imerso) entre as margens do Porto Organizado de Santos e em contrato transitório para a exploração de área em Santos, na região do Saboó.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=886089","Órgão":"TCU"},{"Ano":"2025","Assunto":"Pedido de reexame contra acórdão prolatado em acompanhamento que tem por objeto as Parcerias para o Desenvolvimento Produtivo (PDP) firmadas no âmbito do Ministério da Saúde.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=853114","Órgão":"TCU"},{"Ano":"2025","Assunto":"Recurso de reconsideração interposto contra decisão que julgou as contas da recorrente irregulares, condenou-a em débito e aplicou-lhe multa individual.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=884799","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação sobre possíveis irregularidades em contrato administrativo que teve por objeto a aquisição de 300 ventiladores pulmonares destinados ao combate à pandemia de Covid-19.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=884157","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação acerca da contratação de empresa para apoio à administração pública municipal para a execução de projetos que elevem quantitativa e qualitativamente os serviços de relevância pública nas áreas da Saúde, Educação e Assistência Social, no município de Colinas/TO","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=886144","Órgão":"TCU"},{"Ano":"2025","Assunto":"Auditoria operacional com o objetivo de avaliar a participação das termelétricas na matriz elétrica nacional, considerando sua relevância para o desenvolvimento do setor e segurança energética, incluindo avaliação comparativa quanto à modicidade tarifária e emissão de gases de efeito estufa (GEE).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=883774","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação acerca de possíveis irregularidades em contratação direta de prestação de serviços especializados de locação de aeronaves de asa fixa e rotativa, com o objetivo de subsidiar as atividades de apoio logístico relacionadas à distribuição de cestas de alimentos na Terra Indígena Yanomami.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=883386","Órgão":"TCU"},{"Ano":"2025","Assunto":"Monitoramento do cumprimento de determinação expedida em acórdão proferido em auditoria operacional realizada com o objetivo de avaliar a implementação da Política Nacional para a Prevenção e Controle do Câncer, quanto ao acesso a serviços de diagnóstico.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=881698","Órgão":"TCU"},{"Ano":"2025","Assunto":"Quarto ciclo de acompanhamento da estrutura de Governança, Riscos e Controles dos processos e atividades de tecnologia da informação no Ministério da Saúde.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=881409","Órgão":"TCU"},{"Ano":"2025","Assunto":"Referendo de medida cautelar em representação acerca da utilização indevida de recursos oriundos do Programa Bolsa Família (PBF) em apostas esportivas on-line.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=879619","Órgão":"TCU"},{"Ano":"2024","Assunto":"Solicitação do Congresso Nacional para acompanhar e fiscalizar o cancelamento de 2,9 milhões de pessoas do pagamento do Bolsa Família.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=877059","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto por Romero Magalhaes Ledo contra decisão de natureza condenatória.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=876666","Órgão":"TCU"},{"Ano":"2024","Assunto":"Acompanhamento da nova política de preços de combustíveis da Petrobras.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=870666","Órgão":"TCU"},{"Ano":"2024","Assunto":"Acompanhamento da evolução da Plataforma Transferegov.br.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=876167","Órgão":"TCU"},{"Ano":"2024","Assunto":"Solicitação do Congresso Nacional em que se requer realização de auditoria operacional e de conformidade no tocante aos recursos federais utilizados para manutenção do sistema de saúde.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=875673","Órgão":"TCU"},{"Ano":"2024","Assunto":"Monitoramento do cumprimento das determinações e recomendações emitidas por meio de acórdão proferido em auditoria operacional realizada para avaliar os controles internos do Sistema de Fiscalização de Produtos Controlados do Exército (SisFPC), além dos meios e das estruturas de suporte aos processos finalísticos.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=872455","Órgão":"TCU"},{"Ano":"2024","Assunto":"Auditoria, no âmbito do Fiscobras 2024, realizada com o objetivo de fiscalizar os principais contratos associados à implementação do Programa de Operação de Longo Prazo (Long Term Operation - LTO) para a usina nuclear de Angra 1 ou Programa de Extensão de Vida Útil de Angra 1, na Central Nuclear Almirante Álvaro Alberto (CNAAA), em Angra dos Reis/RJ.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=871313","Órgão":"TCU"},{"Ano":"2024","Assunto":"Tomadas de contas especial em desfavor de Jose Manoel Correa Coelho e do Município de Tatuí (SP).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=872051","Órgão":"TCU"},{"Ano":"2024","Assunto":"Solicitação do Congresso Nacional para que o TCU a realização de auditoria com o objetivo de  apurar a qualidade e eficiência dos serviços de saúde prestados pelo Hospital Municipal de Contagem.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=869910","Órgão":"TCU"},{"Ano":"2024","Assunto":"Pedido de reexame contra acórdão que apreciou monitoramento de deliberação que tratou de representação a respeito de irregularidades ocorridas em propostas de projeto de Parceria para o Desenvolvimento Produtivo (PDP) para os insumos farmacêuticos ativos (IFA) Entricitabina + Tenofovir.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860913","Órgão":"TCU"},{"Ano":"2024","Assunto":"Auditoria operacional para avaliar a focalização e a equidade do Programa Bolsa Família no âmbito do Ministério do Desenvolvimento e Assistência Social, Família e Combate à Fome.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=864260","Órgão":"TCU"},{"Ano":"2024","Assunto":"Auditoria para avaliar a conformidade dos conselhos de fiscalização profissional às normas de transparência das informações exigidas pela Lei de Acesso à Informação (LAI) e às determinações e recomendações feitas mediante acórdão proferido em auditoria realizada para avaliar o cumprimento da LAI pelos conselhos.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=861724","Órgão":"TCU"},{"Ano":"2024","Assunto":"Representação sobre supostas irregularidades em descumprimento de contrato de gestão pelo Complexo Hospitalar Universitário da UFPA.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=864785","Órgão":"TCU"},{"Ano":"2024","Assunto":"Denúncia sobre possíveis irregularidades ocorridas em concorrência para contratação empresa pelo período de 24 meses para prestação de serviços especializados para licenciamento, implantação, treinamento, customização de Solução Corporativa SaaS de Gestão Integrada de Recursos Humanos, Folha de Pagamentos e Workflow.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=867948","Órgão":"TCU"},{"Ano":"2024","Assunto":"Representação acerca de possíveis irregularidades ocorridas no âmbito da então Agência para o Desenvolvimento da Atenção Primária à Saúde (ADAPS).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=863624","Órgão":"TCU"},{"Ano":"2024","Assunto":"Solicitação do Congresso Nacional em que se requer a realização de auditoria com objetivo de verificar a regularidade de todos os processos licitatórios realizados pelo Ministério da Integração e Desenvolvimento Regional ou por suas entidades vinculadas que resultaram na contratação de empresa especificada.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=861553","Órgão":"TCU"},{"Ano":"2024","Assunto":"Solicitação do Congresso Nacional em que se requer realização de auditoria operacional e de conformidade no tocante aos recursos federais utilizados para manutenção do sistema de saúde.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=864800","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto por José Barbosa de Andrade contra o Acórdão 58/2024-TCU-2a Câmara.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=862707","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto por Gerson Miranda Lopes contra decisão de ...","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=862426","Órgão":"TCU"},{"Ano":"2024","Assunto":"Processo administrativo com proposta de fiscalização.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860445","Órgão":"TCU"},{"Ano":"2024","Assunto":"Monitoramento das determinações e recomendações exaradas por meio de acórdão proferido em auditoria realizada com o objetivo de verificar a viabilidade técnica, econômica e ambiental de empreendimentos de transportes públicos de média e alta capacidade quanto aos princípios e diretrizes da Política Nacional de Mobilidade Urbana.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860032","Órgão":"TCU"},{"Ano":"2024","Assunto":"Denúncia de possíveis irregularidades relacionadas a processo administrativo de regulação que trata de proposta de medida regulatória dos denominados Dispositivos Eletrônicos para Fumar (DEFs).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=859178","Órgão":"TCU"},{"Ano":"2024","Assunto":"Acompanhamento com o objetivo de avaliar iniciativas e comunicar riscos à implementação da Estratégia Brasileira de Inteligência Artificial (Ebia), inclusive provenientes de regulação do tema, e seus impactos nos setores público e privado. Análise do relatório da 1a etapa de acompanhamento.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=855717","Órgão":"TCU"},{"Ano":"2024","Assunto":"Auditoria de natureza operacional integrada com aspectos de conformidade com o objetivo de avaliar a eficiência e a conformidade da gestão de benefícios por incapacidade operacionalizados pelo INSS, com foco na perícia médica. Análise de relatório de auditoria.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=855962","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto contra decisão que julgou irregulares as contas do responsável, com condenação em débito e aplicação de multa.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=854280","Órgão":"TCU"},{"Ano":"2024","Assunto":"Solicitação do Congresso Nacional em que se requer a realização de auditoria com o objetivo de apurar possíveis irregularidades nos contratos de prestação de serviços firmados por unidade jurisdicionada.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=855126","Órgão":"TCU"}],"achados_text":"**ACHADOS**\n\n1.  Foram identificados processos licitatórios vultosos, com destaque para o Ministério da Integração e Desenvolvimento Regional (MIDR) e a Codevasf, com **valores significativos**, como o pregão do MIDR (R$ 1.736.983.516,28). Houve também irregularidades na aplicação de recursos do Fundo Nacional de Desenvolvimento da Educação (FNDE) no **PROJOVEM URBANO** em 2015, e no município de Rio Sono/TO, com contratos e pagamentos suspeitos envolvendo uma cooperativa, além de **falhas na pesquisa de preços** em licitações.\n\n2.  A auditoria identificou potenciais benefícios em certames da Marinha e Aeronáutica, com destaque para a aquisição de gêneros alimentícios e medicamentos, com **valores expressivos**. Há indícios de desvio de finalidade na programação orçamentária do CHU-UFPA, administrada pela UFPA, e **irregularidades na transferência de recursos** para a FADESP. Além disso, foram encontradas **condutas omissivas** em relação a alertas do Tribunal de Contas.\n\n**FRAGILIDADES**\n\n1.  Observam-se **fragilidades nos controles internos** e na comprovação da regular aplicação de recursos, especialmente no caso do PROJOVEM URBANO e nos contratos da Secretaria Municipal de Saúde de Rio Sono/TO. Há riscos de **desvio de finalidade** e de má gestão dos recursos, com potencial impacto financeiro e na execução das políticas públicas. A ausência de **segregação de funções** e a falta de detalhamento nos processos de despesa são evidentes.\n\n2.  A pesquisa de preços inadequada e a falta de **monitoramento** dos gastos, como no caso da licitação em Sinop/MT, indicam **riscos de sobrepreço** e de direcionamento de licitações. A ausência de **transparência** e a falta de justificativas para a escolha de fornecedores comprometem a eficiência e a legalidade das contratações. A falta de **acompanhamento** das movimentações bancárias e dos processos de prestação de contas do Pnae também são fragilidades.\n\n**RECOMENDAÇÕES**\n\n1.  Aprimorar a **pesquisa de preços** em licitações, utilizando parâmetros de referência adequados e justificando as metodologias utilizadas (**órgãos licitantes**, **30/09/2024**, **documentação comprobatória**).\n2.  Fortalecer os **controles internos** nos processos de aplicação de recursos, com foco na segregação de funções e na comprovação da regularidade dos gastos (**órgãos licitantes**, **30/09/2024**, **relatórios de auditoria**).\n3.  Acompanhar as movimentações bancárias e os processos de prestação de contas dos recursos do Pnae, implementando melhorias no **monitoramento** (**órgãos competentes**, **30/09/2024**, **relatórios de acompanhamento**).\n4.  Investigar as **irregularidades** nos contratos da Secretaria Municipal de Saúde de Rio Sono/TO, buscando o **ressarcimento** de eventuais danos ao erário (**CGU/TCU**, **30/09/2024**, **relatório conclusivo**).\n5.  Avaliar a conformidade da transferência de recursos do CHU-UFPA para a FADESP, verificando o cumprimento da legislação e a **finalidade** dos gastos (**UFPA/FADESP**, **30/09/2024**, **relatório de auditoria**).\n6.  Assegurar a **transparência** nos processos licitatórios, divulgando informações detalhadas sobre os preços, os fornecedores e os critérios de seleção (**órgãos licitantes**, **30/09/2024**, **portal da transparência**).\n"}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div class="filter-group"><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div class="filter-group"><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+    <div><button id="btn-clear-filters" class="btn-clear">Limpar Filtros</button></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-cgu"><thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="6">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-tcu"><thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="3">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+  
+  <div class="card section">
+    <h2>Achados/Fragilidades TCU <span class="kpi">(<span id="achados-vis">0</span>/<span id="achados-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-achados"><thead><tr><th>Tipo</th><th>Descrição</th><th>Detalhes</th></tr></thead><tbody><tr class="loading"><td colspan="3">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function getYearFromDateStr(s) {
+    var match = String(s || '').match(/\b(\d{4})\b/);
+    return match ? match[1] : '';
+  }
+  function textOrEmpty(v) { return v === 0 ? '0' : (v == null ? '' : String(v)); }
+  function escapeRegExp(s) { return String(s).replace(/[-\/^$*+?.()|[\]{}]/g, '\\$&'); }
+
+  var seed = { resumo: '', cgu_tabela: [], tcu_tabela: [], achados_text: '' };
+  try {
+    seed = JSON.parse(document.getElementById('seed').textContent || '{}');
+  } catch (e) {
+    console.error("Erro ao ler dados do painel:", e);
+  }
+
+  var elements = {
+      titulo: document.getElementById('titulo'),
+      resumo: document.getElementById('resumo'),
+      fTexto: document.getElementById('f-texto'),
+      fAno: document.getElementById('f-ano'),
+      fUf: document.getElementById('f-uf'),
+      fOrgao: document.getElementById('f-orgao'),
+      btnClear: document.getElementById('btn-clear-filters'),
+      cguVis: document.getElementById('cgu-vis'),
+      cguTot: document.getElementById('cgu-tot'),
+      tcuVis: document.getElementById('tcu-vis'),
+      tcuTot: document.getElementById('tcu-tot'),
+      achadosVis: document.getElementById('achados-vis'),
+      achadosTot: document.getElementById('achados-tot'),
+      cguBody: document.querySelector('#tbl-cgu tbody'),
+      tcuBody: document.querySelector('#tbl-tcu tbody'),
+      achadosBody: document.querySelector('#tbl-achados tbody'),
+      barCanvas: document.getElementById('bar'),
+      pieCanvas: document.getElementById('pie'),
+      barLegend: document.getElementById('bar-legend'),
+      pieLegend: document.getElementById('pie-legend'),
+  };
+
+  var themeMatch = (seed.resumo || '').match(/"([^"]+)"/);
+  var SEARCH_PHRASE = themeMatch ? themeMatch[1].trim() : '';
+  var STOP_WORDS = new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que']);
+  var searchTerms = (SEARCH_PHRASE ? SEARCH_PHRASE.split(/\s+/) : []).filter(function(w) { return w && w.length >= 2 && !STOP_WORDS.has(norm(w)); });
+  var DIACRITICS = {'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  var diacriticPart = function(s) { return s.split('').map(function(ch) { return DIACRITICS[ch.toLowerCase()] || (ch.match(/\s/) ? '\\s+' : escapeRegExp(ch)); }).join(''); };
+  var searchParts = [SEARCH_PHRASE].concat(searchTerms).filter(Boolean).map(diacriticPart);
+  var SEARCH_RE = searchParts.length ? new RegExp('(?:^|\\b)(' + searchParts.join('|') + ')(?=\\b|$)', 'gi') : null;
+  
+  function highlightBold(txt) {
+      var s = textOrEmpty(txt);
+      return SEARCH_RE ? s.replace(SEARCH_RE, function(m) { return '<b class="hl">' + m + '</b>'; }) : s;
+  };
+
+  document.title = 'Painel de ' + (SEARCH_PHRASE || 'Auditoria');
+  elements.titulo.textContent = document.title;
+  elements.resumo.textContent = textOrEmpty(seed.resumo);
+
+  var CGU = (seed.cgu_tabela || []).map(function(x) { return Object.assign({_src:'CGU'}, x); });
+  var TCU = (seed.tcu_tabela || []).map(function(x) { return Object.assign({_src:'TCU'}, x); }).sort(function(a, b) { return (b.Ano || 0) - (a.Ano || 0); });
+
+  // AJUSTE: Nova função para parsear o texto de achados para uma tabela
+  function parseAchadosText(text) {
+    if (!text || !text.trim()) return [];
+    var lines = text.split('\n');
+    var result = [];
+    var currentType = 'Geral';
+    var typeKeywords = ['ACHADOS', 'FRAGILIDADES', 'RECOMENDAÇÕES'];
+    
+    lines.forEach(function(line) {
+        var trimmedLine = line.trim();
+        if (!trimmedLine) return;
+        
+        var isTitle = false;
+        for(var i = 0; i < typeKeywords.length; i++) {
+            if (trimmedLine.toUpperCase() === typeKeywords[i]) {
+                currentType = trimmedLine.charAt(0).toUpperCase() + trimmedLine.slice(1).toLowerCase();
+                isTitle = true;
+                break;
+            }
+        }
+        
+        if (!isTitle) {
+            var itemMatch = trimmedLine.match(/^\d+.\s*(.*)/);
+            if (itemMatch && itemMatch[1]) {
+                var content = itemMatch[1];
+                var desc = content;
+                var details = '';
+                
+                var detailsMatch = content.match(/(.+?)\((prazo|evidência):.+/i);
+                if (detailsMatch) {
+                    desc = detailsMatch[1].trim();
+                    details = detailsMatch[2].trim();
+                }
+                
+                result.push({
+                    Tipo: currentType,
+                    Descricao: desc,
+                    Detalhes: details
+                });
+            } else {
+                 if (result.length > 0) {
+                    result[result.length - 1].Descricao += ' ' + trimmedLine;
+                 }
+            }
+        }
+    });
+    return result;
+  }
+  
+  var ACHADOS = parseAchadosText(seed.achados_text);
+  
+  elements.cguTot.textContent = CGU.length;
+  elements.tcuTot.textContent = TCU.length;
+  elements.achadosTot.textContent = ACHADOS.length;
+  
+  var yearSet = {};
+  CGU.forEach(function(r) { var y = getYearFromDateStr(r.Data); if(y) yearSet[y] = true; });
+  TCU.forEach(function(r) { if(r.Ano) yearSet[r.Ano] = true; });
+  Object.keys(yearSet).sort(function(a,b) { return b-a; }).forEach(function(y) { elements.fAno.add(new Option(y, y)); });
+  
+  var ufSet = {};
+  CGU.forEach(function(r) { if(r.UF && r.UF !== 'N/A') ufSet[r.UF] = true; });
+  Object.keys(ufSet).sort().forEach(function(u) { elements.fUf.add(new Option(u, u)); });
+
+  // AJUSTE: Função renderTables agora inclui a tabela de achados
+  function renderTables(rowsCGU, rowsTCU, rowsAchados) {
+    function renderBody(tbody, rows, rowHTMLGenerator, colSpan) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+            tbody.innerHTML = '<tr class="no-results"><td colspan="' + colSpan + '">Nenhum registro para exibir.</td></tr>';
+        } else {
+            rows.forEach(function(row) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = rowHTMLGenerator(row);
+                tbody.appendChild(tr);
+            });
+        }
+    };
+    renderBody(elements.cguBody, rowsCGU, function(r) {
+        return '<td>' + highlightBold(r['Título']) + '</td><td>' + r.Data + '</td><td>' + r.UF + '</td><td>' + r['Unidade Auditada'] + '</td><td>' + r['Tipo de Serviço'] + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 6);
+    renderBody(elements.tcuBody, rowsTCU, function(r) {
+        return '<td>' + r.Ano + '</td><td>' + highlightBold(r.Assunto) + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 3);
+    renderBody(elements.achadosBody, rowsAchados, function(r) {
+        return '<td>' + r.Tipo + '</td><td>' + highlightBold(r.Descricao) + '</td><td>' + highlightBold(r.Detalhes) + '</td>';
+    }, 3);
+  }
+  
+  function drawBar(rowsCGU,rowsTCU){var ctx=elements.barCanvas.getContext('2d');ctx.clearRect(0,0,elements.barCanvas.width,elements.barCanvas.height);elements.barLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data);if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].CGU++;});rowsTCU.forEach(function(r){var y=r.Ano;if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].TCU++;});var labels=Object.keys(agg).sort(function(a,b){return a-b;});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.barCanvas.width/2,elements.barCanvas.height/2);return;}var pad={t:20,r:16,b:40,l:28},w=elements.barCanvas.width-pad.l-pad.r,h=elements.barCanvas.height-pad.t-pad.b,max=1;labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();ctx.fillStyle='#555';ctx.textAlign='right';for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}var groupW=w/labels.length,barW=Math.max(8,groupW*0.35);var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu').trim()||'#0a9396';var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu').trim()||'#94d2bd';labels.forEach(function(y,i){var x=pad.l+i*groupW+groupW/2;var hCGU=(agg[y].CGU/max)*h,hTCU=(agg[y].TCU/max)*h;ctx.fillStyle=cguColor;ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);ctx.fillStyle=tcuColor;ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);});elements.barLegend.innerHTML='<div><span class="legend-box" style="background:'+cguColor+'"></span>CGU</div><div><span class="legend-box" style="background:'+tcuColor+'"></span>TCU</div>';}
+  function drawPie(rowsCGU){var ctx=elements.pieCanvas.getContext('2d');ctx.clearRect(0,0,elements.pieCanvas.width,elements.pieCanvas.height);elements.pieLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var u=r.UF||'N/A';agg[u]=(agg[u]||0)+1;});var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.pieCanvas.width/2,elements.pieCanvas.height/2);return;}var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];var total=labels.reduce(function(s,k){return s+agg[k];},0);var start=-Math.PI/2,cx=elements.pieCanvas.width/2,cy=elements.pieCanvas.height/2,r=Math.min(cx,cy)-14;labels.forEach(function(label,i){var val=agg[label],ang=(val/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();var pct=(val/total*100).toFixed(1)+'%';var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';elements.pieLegend.appendChild(d);start+=ang;});}
+
+  // AJUSTE: applyFilters agora inclui a tabela de achados
+  function applyFilters() {
+    var txt = norm(elements.fTexto.value);
+    var ano = elements.fAno.value;
+    var uf = elements.fUf.value;
+    var org = elements.fOrgao.value;
+
+    var filteredCGU = CGU.filter(function(r) {
+        if (org && org !== 'CGU') return false;
+        if (uf && r.UF !== uf) return false;
+        if (ano && getYearFromDateStr(r.Data) !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+    var filteredTCU = TCU.filter(function(r) {
+        if (org && org !== 'TCU') return false;
+        if (ano && r.Ano !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+    var filteredAchados = ACHADOS.filter(function(r) {
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+
+    elements.cguVis.textContent = filteredCGU.length;
+    elements.tcuVis.textContent = filteredTCU.length;
+    elements.achadosVis.textContent = filteredAchados.length;
+    
+    renderTables(filteredCGU, filteredTCU, filteredAchados);
+    drawBar(filteredCGU, filteredTCU);
+    drawPie(filteredCGU);
+  }
+  
+  [elements.fTexto, elements.fAno, elements.fUf, elements.fOrgao].forEach(function(el) {
+    el.addEventListener('input', applyFilters);
+  });
+
+  elements.btnClear.addEventListener('click', function() {
+    elements.fTexto.value = '';
+    elements.fAno.value = '';
+    elements.fUf.value = '';
+    elements.fOrgao.value = '';
+    applyFilters();
+  });
+
+  applyFilters();
+});
+</script>
+</body>
+</html>
