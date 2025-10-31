@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px}
+#resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.filter-group{flex:1 1 220px}
+.filters label{font-weight:600;display:block;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.btn-clear{padding:10px 16px;border:1px solid var(--b);border-radius:8px;background:#fff;cursor:pointer;color:var(--pri);font-weight:600}
+.btn-clear:hover{background:var(--bg)}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+td{min-width:120px}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap}
+a.link:hover{text-decoration:underline}
+.no-results,.loading{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+.keyword-tag { margin-right: 5px; padding: 2px 6px; font-size: 12px; background-color: #e9ecef; border-radius: 4px; display: inline-block; margin-bottom: 3px; }
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script id="seed" type="application/json">{"resumo":"Exibindo os itens mais relevantes por fonte para \"Farmácia Popular\".","cgu_tabela":[{"Título":"Relatório de Apuração nº 823121 - Processo de autorização de venda do Programa Farmácia Popular do Brasil - Ministério da Saúde (MS)","Data":"04/01/2024","UF":"SC","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1541439"},{"Título":"RDE nº 00106.012938/2016-60 - Drogaria Dosesi Ltda - Programa Farmácia Popular do Brasil","Data":"24/04/2019","UF":"RS","Unidade Auditada":"Secretaria de Ciência, Tecnologia e Inovação e do Complexo Econômico-Industrial da Saúde","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856560"}],"tcu_tabela":[{"Ano":"2051","Assunto":"Prorrogação de prazo para atendimento de Solicitação do Congresso Nacional, cujo objeto é de auditoria no Programa Farmácia Popular.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=800830","Órgão":"TCU"},{"Ano":"2025","Assunto":"Recurso de reconsideração interposto contra acórdão que, entre outras providências, julgou irregulares contas especiais da recorrente e de outros responsáveis e aplicou-lhes multas, em virtude de irregularidades na execução do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular (PFPB).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=889584","Órgão":"TCU"},{"Ano":"2025","Assunto":"Recurso de reconsideração interposto contra acórdão que julgou as contas das recorrentes irregulares e condenou-as ao pagamento de débito e de multas em razão de aplicação irregular dos recursos do Sistema Único de Saúde (SUS), no âmbito do Programa Farmácia Popular do Brasil (PFPB).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=875312","Órgão":"TCU"},{"Ano":"2025","Assunto":"Recurso de reconsideração interposto contra acórdão que julgou irregulares as contas da recorrente e a condenou, solidariamente com outro responsável, ao pagamento de débito e multa em razão da aplicação irregular de recursos do Sistema Único de Saúde (SUS) no âmbito do Programa Farmácia Popular do Brasil  Aqui Tem Farmácia Popular (PFPB).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=859602","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto por Drogaria Marotto Ltda. contra decisão que julgou irregulares suas contas, imputando-lhe débito e multa. Programa Farmácia Popular do Brasil.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860030","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto contra decisão que julgou irregulares as contas das recorrentes, condenou-as ao pagamento do débito apurado e aplicou-lhes multa.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=860109","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto contra decisão que julgou irregulares as contas do responsável, condenou-o ao pagamento do débito apurado e aplicou-lhe multa.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=854831","Órgão":"TCU"},{"Ano":"2024","Assunto":"Recurso de reconsideração interposto contra decisão que condenou os responsáveis em débito e aplicou-lhes multa por irregularidades na comprovação dos recursos utilizados por meio do Programa Farmácia Popular do Brasil.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=852361","Órgão":"TCU"},{"Ano":"2023","Assunto":"Recurso de reconsideração interposto contra decisão que julgou irregulares as contas do responsável, condenando-o ao pagamento de débito e multa, em virtude de irregularidades na execução de recursos disponibilizados no Programa Farmácia Popular do Brasil.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=842143","Órgão":"TCU"},{"Ano":"2023","Assunto":"Recurso de reconsideração interposto por Antonio Luis de Souza Santos contra o Acórdão 329/2023-TCU-2a Câmara.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=842290","Órgão":"TCU"}],"achados_tabela":[{"tipo":"Achado","descricao":"O Tribunal de Contas da União (TCU) identificou 313 processos de Tomada de Contas Especiais (TCE) relacionados ao Programa Farmácia Popular, entre 2017 e 2022, resultando em um débito apurado de R$ 116.213.725,10. O Ministério da Saúde, por meio do Fundo Nacional de Saúde (FNS), foi o principal ente transferidor.","palavras_chave":["Farmácia Popular","TCE","R$ 116.213.725,10","2017-2022","FNS"]},{"tipo":"Achado","descricao":"Em auditoria, constatou-se dano ao erário no valor de R$ 91.346,03, devido a irregularidades nas dispensações e/ou na documentação comprobatória de medicamentos do Programa Farmácia Popular do Brasil, no estabelecimento C & J Comercial de Produtos Farmacêuticos Ltda., entre novembro/2014 e março/2016.","palavras_chave":["Farmácia Popular do Brasil","dano ao erário","R$ 91.346,03","2014-2016","irregularidades"]},{"tipo":"Achado","descricao":"Foram identificadas dispensações de medicamentos sem notas fiscais que comprovassem a aquisição, e não apresentação de cópia do cupom fiscal, cupom vinculado e/ou receitas médicas, caracterizando culpa grave. O período analisado foi de março/2015 a junho/2019, com infração a portarias do Ministério da Saúde.","palavras_chave":["Farmácia Popular","dispensações irregulares","notas fiscais","2015-2019","culpa grave"]},{"tipo":"Achado","descricao":"Em auditoria realizada entre 4/5/2017 e 11/8/2017, com foco no cumprimento das normas estabelecidas pelas Portarias GM/MS 971/2012 e 111/2016, foram identificadas irregularidades na execução do PFPB pela Drogaria Marotto Ltda., abrangendo o período de fevereiro/2014 a agosto/2016.","palavras_chave":["Farmácia Popular","irregularidades","2014-2016","Drogaria Marotto Ltda.","Portarias GM/MS"]},{"tipo":"Achado","descricao":"A presente TCE originou-se de constatações do Departamento Nacional de Auditoria do SUS (Denasus) em auditoria realizada entre 3/3/2014 e 12/5/2020, com a finalidade de avaliar a execução do PFPB junto ao estabelecimento comercial Farmácia Metropolitana Ltda., abrangendo o período de março/2016 a fevereiro/2019.","palavras_chave":["Farmácia Popular","Denasus","2016-2019","Farmácia Metropolitana Ltda."]},{"tipo":"Achado","descricao":"Antônio Luís de Souza Santos foi condenado por aplicação irregular de recursos do SUS no âmbito do Programa Farmácia Popular do Brasil - Aqui Tem Farmácia Popular, no período de 14/3/2013 a 5/11/2015. A data de reconhecimento da irregularidade foi 14/6/2017.","palavras_chave":["Farmácia Popular","recursos irregulares","2013-2015","Antônio Luís de Souza Santos"]},{"tipo":"Fragilidade","descricao":"A ausência de documentação comprobatória de dispensações de medicamentos do Programa Farmácia Popular, abrangendo o período de março/2015 a junho/2019, demonstra fragilidade nos controles. A falta de apresentação de documentos para comprovar a boa e regular aplicação dos recursos aplicados na execução do PFPB.","palavras_chave":["Farmácia Popular","documentação ausente","2015-2019","fragilidade nos controles","aplicação de recursos"]},{"tipo":"Recomendação","descricao":"Aplicar a multa prevista no art. 57 da Lei 8.443/1992, em desfavor de Furrati Comércio de Medicamentos Ltda., além de Chirley Furrati e José Licelio Furrati, individualmente, sob o respectivo valor de R$ 150.000,00 (cento e cinquenta mil reais).","palavras_chave":["multa","ressarcimento","Farmácia Popular","Lei 8.443/1992"]},{"tipo":"Recomendação","descricao":"Condenar o responsável identificado, com fundamento no art. 19, caput, da Lei 8.443/1992, ao pagamento das quantias especificadas, com prazo de 15 dias para comprovar o recolhimento das dívidas aos cofres do Fundo Nacional de Saúde, atualizadas monetariamente e acrescidas dos juros de mora.","palavras_chave":["condenar responsável","ressarcimento","Farmácia Popular","Lei 8.443/1992"]}]}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div class="filter-group"><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div class="filter-group"><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+    <div><button id="btn-clear-filters" class="btn-clear">Limpar Filtros</button></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-cgu"><thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="6">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-tcu"><thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="3">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+  
+  <!-- <<< NOVO HTML PARA A TABELA DE ACHADOS >>> -->
+  <div class="card section">
+    <h2>CGU/TCU - Achados e Recomendações</h2>
+    <div class="table-wrap">
+      <table id="tbl-achados">
+        <thead>
+          <tr>
+            <th style="width:15%;">Tipo</th>
+            <th>Descrição</th>
+            <th style="width:25%;">Palavras-Chave</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="loading"><td colspan="3">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function getYearFromDateStr(s) {
+    var match = String(s || '').match(/\b(\d{4})\b/);
+    return match ? match[1] : '';
+  }
+  function textOrEmpty(v) { return v === 0 ? '0' : (v == null ? '' : String(v)); }
+  function escapeRegExp(s) { return String(s).replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&'); }
+
+  var seed = { resumo: '', cgu_tabela: [], tcu_tabela: [], achados_tabela: [] };
+  try {
+    seed = JSON.parse(document.getElementById('seed').textContent || '{}');
+  } catch (e) {
+    console.error("Erro ao ler dados do painel:", e);
+  }
+
+  var elements = {
+      titulo: document.getElementById('titulo'),
+      resumo: document.getElementById('resumo'),
+      fTexto: document.getElementById('f-texto'),
+      fAno: document.getElementById('f-ano'),
+      fUf: document.getElementById('f-uf'),
+      fOrgao: document.getElementById('f-orgao'),
+      btnClear: document.getElementById('btn-clear-filters'),
+      cguVis: document.getElementById('cgu-vis'),
+      cguTot: document.getElementById('cgu-tot'),
+      tcuVis: document.getElementById('tcu-vis'),
+      tcuTot: document.getElementById('tcu-tot'),
+      cguBody: document.querySelector('#tbl-cgu tbody'),
+      tcuBody: document.querySelector('#tbl-tcu tbody'),
+      achadosBody: document.querySelector('#tbl-achados tbody'), // <<< ADICIONADO: referência à nova tabela
+      barCanvas: document.getElementById('bar'),
+      pieCanvas: document.getElementById('pie'),
+      barLegend: document.getElementById('bar-legend'),
+      pieLegend: document.getElementById('pie-legend'),
+  };
+
+  var themeMatch = (seed.resumo || '').match(/"([^"]+)"/);
+  var SEARCH_PHRASE = themeMatch ? themeMatch[1].trim() : '';
+  var STOP_WORDS = new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que']);
+  var searchTerms = (SEARCH_PHRASE ? SEARCH_PHRASE.split(/\s+/) : []).filter(function(w) { return w && w.length >= 2 && !STOP_WORDS.has(norm(w)); });
+  var DIACRITICS = {'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  var diacriticPart = function(s) { return s.split('').map(function(ch) { return DIACRITICS[ch.toLowerCase()] || (ch.match(/\s/) ? '\\s+' : escapeRegExp(ch)); }).join(''); };
+  var searchParts = [SEARCH_PHRASE].concat(searchTerms).filter(Boolean).map(diacriticPart);
+  var SEARCH_RE = searchParts.length ? new RegExp('(?:^|\\b)(' + searchParts.join('|') + ')(?=\\b|$)', 'gi') : null;
+  
+  function highlightBold(txt) {
+      var s = textOrEmpty(txt);
+      return SEARCH_RE ? s.replace(SEARCH_RE, function(m) { return '<b class="hl">' + m + '</b>'; }) : s;
+  };
+
+  document.title = 'Painel de ' + (SEARCH_PHRASE || 'Auditoria');
+  elements.titulo.textContent = document.title;
+  elements.resumo.textContent = textOrEmpty(seed.resumo);
+
+  var CGU = (seed.cgu_tabela || []).map(function(x) { return Object.assign({_src:'CGU'}, x); });
+  var TCU = (seed.tcu_tabela || []).map(function(x) { return Object.assign({_src:'TCU'}, x); }).sort(function(a, b) { return (b.Ano || 0) - (a.Ano || 0); });
+  
+  elements.cguTot.textContent = CGU.length;
+  elements.tcuTot.textContent = TCU.length;
+  
+  var yearSet = {};
+  CGU.forEach(function(r) { var y = getYearFromDateStr(r.Data); if(y) yearSet[y] = true; });
+  TCU.forEach(function(r) { if(r.Ano) yearSet[r.Ano] = true; });
+  Object.keys(yearSet).sort(function(a,b) { return b-a; }).forEach(function(y) { elements.fAno.add(new Option(y, y)); });
+  
+  var ufSet = {};
+  CGU.forEach(function(r) { if(r.UF && r.UF !== 'N/A') ufSet[r.UF] = true; });
+  Object.keys(ufSet).sort().forEach(function(u) { elements.fUf.add(new Option(u, u)); });
+
+  function renderTables(rowsCGU, rowsTCU) {
+    function renderBody(tbody, rows, rowHTMLGenerator, colSpan) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+            tbody.innerHTML = '<tr class="no-results"><td colspan="' + colSpan + '">Nenhum registro para exibir.</td></tr>';
+        } else {
+            rows.forEach(function(row) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = rowHTMLGenerator(row);
+                tbody.appendChild(tr);
+            });
+        }
+    };
+    renderBody(elements.cguBody, rowsCGU, function(r) {
+        return '<td>' + highlightBold(r['Título']) + '</td><td>' + r.Data + '</td><td>' + r.UF + '</td><td>' + r['Unidade Auditada'] + '</td><td>' + r['Tipo de Serviço'] + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 6);
+    renderBody(elements.tcuBody, rowsTCU, function(r) {
+        return '<td>' + r.Ano + '</td><td>' + highlightBold(r.Assunto) + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 3);
+    
+    // <<< NOVO: RENDERIZAR A TABELA DE ACHADOS >>>
+    var achadosRows = seed.achados_tabela || [];
+    renderBody(elements.achadosBody, achadosRows, function(r) {
+        var palavrasChaveHtml = (r.palavras_chave || []).map(function(k) {
+            return '<span class="keyword-tag">' + k + '</span>';
+        }).join(' ');
+        
+        var tipoClass = '';
+        if (r.tipo === 'Achado') tipoClass = 'color: #c91a34;';
+        if (r.tipo === 'Fragilidade') tipoClass = 'color: #d97706;';
+        if (r.tipo === 'Recomendação') tipoClass = 'color: #059669;';
+
+        return '<td style="' + tipoClass + '"><b>' + r.tipo + '</b></td><td>' + highlightBold(r.descricao) + '</td><td>' + palavrasChaveHtml + '</td>';
+    }, 3);
+  }
+  
+  function drawBar(rowsCGU,rowsTCU){var ctx=elements.barCanvas.getContext('2d');ctx.clearRect(0,0,elements.barCanvas.width,elements.barCanvas.height);elements.barLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data);if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].CGU++;});rowsTCU.forEach(function(r){var y=r.Ano;if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].TCU++;});var labels=Object.keys(agg).sort(function(a,b){return a-b;});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.barCanvas.width/2,elements.barCanvas.height/2);return;}var pad={t:20,r:16,b:40,l:28},w=elements.barCanvas.width-pad.l-pad.r,h=elements.barCanvas.height-pad.t-pad.b,max=1;labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();ctx.fillStyle='#555';ctx.textAlign='right';for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}var groupW=w/labels.length,barW=Math.max(8,groupW*0.35);var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu').trim()||'#0a9396';var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu').trim()||'#94d2bd';labels.forEach(function(y,i){var x=pad.l+i*groupW+groupW/2;var hCGU=(agg[y].CGU/max)*h,hTCU=(agg[y].TCU/max)*h;ctx.fillStyle=cguColor;ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);ctx.fillStyle=tcuColor;ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);});elements.barLegend.innerHTML='<div><span class="legend-box" style="background:'+cguColor+'"></span>CGU</div><div><span class="legend-box" style="background:'+tcuColor+'"></span>TCU</div>';}
+  function drawPie(rowsCGU){var ctx=elements.pieCanvas.getContext('2d');ctx.clearRect(0,0,elements.pieCanvas.width,elements.pieCanvas.height);elements.pieLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var u=r.UF||'N/A';agg[u]=(agg[u]||0)+1;});var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.pieCanvas.width/2,elements.pieCanvas.height/2);return;}var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];var total=labels.reduce(function(s,k){return s+agg[k];},0);var start=-Math.PI/2,cx=elements.pieCanvas.width/2,cy=elements.pieCanvas.height/2,r=Math.min(cx,cy)-14;labels.forEach(function(label,i){var val=agg[label],ang=(val/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();var pct=(val/total*100).toFixed(1)+'%';var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';elements.pieLegend.appendChild(d);start+=ang;});}
+
+  function applyFilters() {
+    var txt = norm(elements.fTexto.value);
+    var ano = elements.fAno.value;
+    var uf = elements.fUf.value;
+    var org = elements.fOrgao.value;
+
+    var filteredCGU = CGU.filter(function(r) {
+        if (org && org !== 'CGU') return false;
+        if (uf && r.UF !== uf) return false;
+        if (ano && getYearFromDateStr(r.Data) !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+    var filteredTCU = TCU.filter(function(r) {
+        if (org && org !== 'TCU') return false;
+        if (ano && r.Ano !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+
+    elements.cguVis.textContent = filteredCGU.length;
+    elements.tcuVis.textContent = filteredTCU.length;
+    renderTables(filteredCGU, filteredTCU); // A função renderTables já inclui a renderização da tabela de achados
+    drawBar(filteredCGU, filteredTCU);
+    drawPie(filteredCGU);
+  }
+
+  [elements.fTexto, elements.fAno, elements.fUf, elements.fOrgao].forEach(function(el) {
+    el.addEventListener('input', applyFilters);
+  });
+
+  elements.btnClear.addEventListener('click', function() {
+    elements.fTexto.value = '';
+    elements.fAno.value = '';
+    elements.fUf.value = '';
+    elements.fOrgao.value = '';
+    applyFilters();
+  });
+
+  applyFilters();
+});
+</script>
+</body>
+</html>
