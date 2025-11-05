@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px}
+#resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.filter-group{flex:1 1 220px}
+.filters label{font-weight:600;display:block;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.btn-clear{padding:10px 16px;border:1px solid var(--b);border-radius:8px;background:#fff;cursor:pointer;color:var(--pri);font-weight:600}
+.btn-clear:hover{background:var(--bg)}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+td{min-width:120px}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap}
+a.link:hover{text-decoration:underline}
+.no-results,.loading{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+.keyword-tag { margin-right: 5px; padding: 2px 6px; font-size: 12px; background-color: #e9ecef; border-radius: 4px; display: inline-block; margin-bottom: 3px; }
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script id="seed" type="application/json">{"resumo":"Exibindo os itens mais relevantes por fonte para \"MAC SC\".","cgu_tabela":[{"Título":"Relatório 1111085 - Aplicação de recursos federais destinados ao Fundo Estadual de Saúde de Sergipe: aquisição de material médico-hospitalar, fornecimento de alimentação hospitalar e prestação de serviços de manutenção em imóveis","Data":"07/05/2025","UF":"SE","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1192366"},{"Título":"Relatório 1722201 - Contratação do fornecimento de vale-alimentação para os empregados do Grupo Hospitalar Conceição (GHC)","Data":"15/04/2025","UF":"RS","Unidade Auditada":"HOSPITAL NOSSA SENHORA DA CONCEIÇÃO S.A","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1722535"},{"Título":"Relatório 1633421 - Aquisição de material hospitalar pelo Governo do Acre","Data":"17/12/2024","UF":"AC","Unidade Auditada":"Diretoria-Executiva do Fundo Nacional de Saúde","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1638637"},{"Título":"Relatório 1426051 - Regulação dos serviços de saúde ambulatoriais de média e alta complexidade em Natal (RN)","Data":"17/12/2024","UF":"RN","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1447145"},{"Título":"Relatório 1365577 - Regulação dos serviços de saúde ambulatoriais de média e alta complexidade em Vitória (ES)","Data":"17/12/2024","UF":"ES","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1440920"},{"Título":"Relatório 1404923 - Regulação dos serviços de saúde ambulatoriais de média e alta complexidade em Aracaju (SE)","Data":"19/11/2024","UF":"SE","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1435623"},{"Título":"Relatório 1369391 - Regulação dos serviços de saúde ambulatoriais de média e alta complexidade em Recife (PE)","Data":"23/10/2024","UF":"PE","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1413156"},{"Título":"Relatório 1196943 - Financiamento federal da atenção especializada no SUS: operacionalização do Fundo de Ações Estratégicas e Compensação (FAEC)","Data":"10/06/2024","UF":"DF","Unidade Auditada":"Secretaria de Atenção Especializada à Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1489078"},{"Título":"Relatório 1360352 - Regulação dos serviços de saúde ambulatoriais de média e alta complexidade em Belém (PA)","Data":"10/06/2024","UF":"PA","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1409460"},{"Título":"Relatório 1642112 - Aquisição de material hospitalar pelo Instituto Nacional de Saúde da Mulher, da Criança e do Adolescente Fernandes Figueira (IFF/Fiocruz)","Data":"09/09/2024","UF":"RJ","Unidade Auditada":"Fundação Oswaldo Cruz","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1642327"}],"tcu_tabela":[{"Ano":"2094","Assunto":"Pedido de reexame contra acórdão por meio do qual foi considerada parcialmente procedente representação sobre supostos indícios de irregularidade na contratação de leitos de Unidade de Terapia Intensiva (UTI) para o enfrentamento da pandemia do coronavírus nos municípios de Sinop/MT e Colíder/MT.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=870588","Órgão":"TCU"},{"Ano":"2025","Assunto":"Acompanhamento de conformidade no âmbito da fiscalização contínua de aquisições, por meio de licitações ou contratações diretas, realizadas com recursos públicos federais ou paraestatais.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=894650","Órgão":"TCU"},{"Ano":"2025","Assunto":"Denúncia acerca de possíveis irregularidades em edital de chamamento público para habilitação de instituição de educação superior para autorização de funcionamento de curso de graduação em medicina.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=893794","Órgão":"TCU"},{"Ano":"2025","Assunto":"Pedido de reexame contra acórdão prolatado em representação a respeito de possíveis irregularidades ocorridas na execução de contrato emergencial que teve por objeto serviço de gestão integrada compreendendo gerenciamento técnico, assistência multiprofissional, com manutenção e insumos necessários para o funcionamento dos equipamentos e atendimento dos pacientes em hospitais de campanha, para enfrentamento à SARS-COV2.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=890532","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação a respeito de possíveis irregularidades ocorridas em pregão cujo objeto é a prestação de serviço continuado, sem dedicação de mão de obra exclusiva, de lavanderia hospitalar externa.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=890421","Órgão":"TCU"},{"Ano":"2025","Assunto":"Denúncia a respeito de possíveis irregularidades em contrato firmado para a regular entrega e garantia do equipamento médico-hospitalar gama Câmara Siemens.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=889662","Órgão":"TCU"},{"Ano":"2025","Assunto":"Recurso de reconsideração interposto por Alcides Sadatoshi Kawata,Arildo Brito Simões,José Olegário Ribeiro Lopes,Luciano Merhy,Marcelo Haruhiko Shimysu contra decisão do Tribunal.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=888571","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação de licitante, com pedido cautelar, acerca de possíveis irregularidades no Pregão Eletrônico 90024/2025, promovido pelo Hospital Universitário da Universidade Federal do Amapá (HU/Unifap), vinculado à Empresa Brasileira de Serviços Hospitalares (Ebserh), para a contratação de empresa especializada em limpeza hospitalar.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=888114","Órgão":"TCU"},{"Ano":"2025","Assunto":"Representação acerca de possíveis irregularidades ocorridas na condução de procedimento licitatório presencial destinado à contratação de sociedade de advocacia para prestação de serviços nas áreas de assessoria, consultoria e contencioso.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=886712","Órgão":"TCU"},{"Ano":"2025","Assunto":"Levantamento com o objetivo de conhecer o nível de eficiência das unidades hospitalares do Sistema Único de Saúde geridas pela administração pública.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=884394","Órgão":"TCU"}],"achados_tabela":[{"tipo":"Achado","descricao":"O TCU determinou à Secretaria de Atenção Especializada à Saúde (SAES) que informasse as providências para ressarcimento de pagamentos indevidos de diárias de UTI, nos valores de R$ 591.359,94 e R$ 352.797,48, referentes aos Contratos 137/2020 e 44/2020, por valores superiores ao previsto na Portaria MS/SAES 237/2020.","palavras_chave":["diárias UTI","ressarcimento","Contratos 137/2020 e 44/2020","Portaria MS/SAES 237/2020"]},{"tipo":"Fragilidade","descricao":"Identificou-se ausência de complementação financeira por parte do Estado para pagamento das diárias de leitos de UTI contratados por meio dos Contratos 44 e 137/2020. A responsabilidade federal estava limitada aos valores definidos pela Portaria MS/SAES 237/2020, e qualquer valor superior seria de responsabilidade estadual.","palavras_chave":["diárias UTI","Contratos 44 e 137/2020","Portaria MS/SAES 237/2020","responsabilidade estadual"]},{"tipo":"Recomendação","descricao":"Determinar à Secretaria de Atenção Especializada à Saúde do Ministério da Saúde que comunique ao TCU as medidas adotadas em decorrência da utilização de recursos federais para o pagamento de diárias de UTI Covid-19 no município de Colíder/MT, mesmo sem a habilitação de leitos.","palavras_chave":["diárias UTI Covid-19","recursos federais","Colíder/MT","determinação"]}]}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div class="filter-group"><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div class="filter-group"><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+    <div><button id="btn-clear-filters" class="btn-clear">Limpar Filtros</button></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-cgu"><thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="6">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-tcu"><thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="3">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+  
+  <!-- <<< NOVO HTML PARA A TABELA DE ACHADOS >>> -->
+  <div class="card section">
+    <h2>CGU/TCU - Achados e Recomendações</h2>
+    <div class="table-wrap">
+      <table id="tbl-achados">
+        <thead>
+          <tr>
+            <th style="width:15%;">Tipo</th>
+            <th>Descrição</th>
+            <th style="width:25%;">Palavras-Chave</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="loading"><td colspan="3">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function getYearFromDateStr(s) {
+    var match = String(s || '').match(/\b(\d{4})\b/);
+    return match ? match[1] : '';
+  }
+  function textOrEmpty(v) { return v === 0 ? '0' : (v == null ? '' : String(v)); }
+  function escapeRegExp(s) { return String(s).replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&'); }
+
+  var seed = { resumo: '', cgu_tabela: [], tcu_tabela: [], achados_tabela: [] };
+  try {
+    seed = JSON.parse(document.getElementById('seed').textContent || '{}');
+  } catch (e) {
+    console.error("Erro ao ler dados do painel:", e);
+  }
+
+  var elements = {
+      titulo: document.getElementById('titulo'),
+      resumo: document.getElementById('resumo'),
+      fTexto: document.getElementById('f-texto'),
+      fAno: document.getElementById('f-ano'),
+      fUf: document.getElementById('f-uf'),
+      fOrgao: document.getElementById('f-orgao'),
+      btnClear: document.getElementById('btn-clear-filters'),
+      cguVis: document.getElementById('cgu-vis'),
+      cguTot: document.getElementById('cgu-tot'),
+      tcuVis: document.getElementById('tcu-vis'),
+      tcuTot: document.getElementById('tcu-tot'),
+      cguBody: document.querySelector('#tbl-cgu tbody'),
+      tcuBody: document.querySelector('#tbl-tcu tbody'),
+      achadosBody: document.querySelector('#tbl-achados tbody'), // <<< ADICIONADO: referência à nova tabela
+      barCanvas: document.getElementById('bar'),
+      pieCanvas: document.getElementById('pie'),
+      barLegend: document.getElementById('bar-legend'),
+      pieLegend: document.getElementById('pie-legend'),
+  };
+
+  var themeMatch = (seed.resumo || '').match(/"([^"]+)"/);
+  var SEARCH_PHRASE = themeMatch ? themeMatch[1].trim() : '';
+  var STOP_WORDS = new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que']);
+  var searchTerms = (SEARCH_PHRASE ? SEARCH_PHRASE.split(/\s+/) : []).filter(function(w) { return w && w.length >= 2 && !STOP_WORDS.has(norm(w)); });
+  var DIACRITICS = {'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  var diacriticPart = function(s) { return s.split('').map(function(ch) { return DIACRITICS[ch.toLowerCase()] || (ch.match(/\s/) ? '\\s+' : escapeRegExp(ch)); }).join(''); };
+  var searchParts = [SEARCH_PHRASE].concat(searchTerms).filter(Boolean).map(diacriticPart);
+  var SEARCH_RE = searchParts.length ? new RegExp('(?:^|\\b)(' + searchParts.join('|') + ')(?=\\b|$)', 'gi') : null;
+  
+  function highlightBold(txt) {
+      var s = textOrEmpty(txt);
+      return SEARCH_RE ? s.replace(SEARCH_RE, function(m) { return '<b class="hl">' + m + '</b>'; }) : s;
+  };
+
+  document.title = 'Painel de ' + (SEARCH_PHRASE || 'Auditoria');
+  elements.titulo.textContent = document.title;
+  elements.resumo.textContent = textOrEmpty(seed.resumo);
+
+  var CGU = (seed.cgu_tabela || []).map(function(x) { return Object.assign({_src:'CGU'}, x); });
+  var TCU = (seed.tcu_tabela || []).map(function(x) { return Object.assign({_src:'TCU'}, x); }).sort(function(a, b) { return (b.Ano || 0) - (a.Ano || 0); });
+  
+  elements.cguTot.textContent = CGU.length;
+  elements.tcuTot.textContent = TCU.length;
+  
+  var yearSet = {};
+  CGU.forEach(function(r) { var y = getYearFromDateStr(r.Data); if(y) yearSet[y] = true; });
+  TCU.forEach(function(r) { if(r.Ano) yearSet[r.Ano] = true; });
+  Object.keys(yearSet).sort(function(a,b) { return b-a; }).forEach(function(y) { elements.fAno.add(new Option(y, y)); });
+  
+  var ufSet = {};
+  CGU.forEach(function(r) { if(r.UF && r.UF !== 'N/A') ufSet[r.UF] = true; });
+  Object.keys(ufSet).sort().forEach(function(u) { elements.fUf.add(new Option(u, u)); });
+
+  function renderTables(rowsCGU, rowsTCU) {
+    function renderBody(tbody, rows, rowHTMLGenerator, colSpan) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+            tbody.innerHTML = '<tr class="no-results"><td colspan="' + colSpan + '">Nenhum registro para exibir.</td></tr>';
+        } else {
+            rows.forEach(function(row) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = rowHTMLGenerator(row);
+                tbody.appendChild(tr);
+            });
+        }
+    };
+    renderBody(elements.cguBody, rowsCGU, function(r) {
+        return '<td>' + highlightBold(r['Título']) + '</td><td>' + r.Data + '</td><td>' + r.UF + '</td><td>' + r['Unidade Auditada'] + '</td><td>' + r['Tipo de Serviço'] + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 6);
+    renderBody(elements.tcuBody, rowsTCU, function(r) {
+        return '<td>' + r.Ano + '</td><td>' + highlightBold(r.Assunto) + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 3);
+    
+    // <<< NOVO: RENDERIZAR A TABELA DE ACHADOS >>>
+    var achadosRows = seed.achados_tabela || [];
+    renderBody(elements.achadosBody, achadosRows, function(r) {
+        var palavrasChaveHtml = (r.palavras_chave || []).map(function(k) {
+            return '<span class="keyword-tag">' + k + '</span>';
+        }).join(' ');
+        
+        var tipoClass = '';
+        if (r.tipo === 'Achado') tipoClass = 'color: #c91a34;';
+        if (r.tipo === 'Fragilidade') tipoClass = 'color: #d97706;';
+        if (r.tipo === 'Recomendação') tipoClass = 'color: #059669;';
+
+        return '<td style="' + tipoClass + '"><b>' + r.tipo + '</b></td><td>' + highlightBold(r.descricao) + '</td><td>' + palavrasChaveHtml + '</td>';
+    }, 3);
+  }
+  
+  function drawBar(rowsCGU,rowsTCU){var ctx=elements.barCanvas.getContext('2d');ctx.clearRect(0,0,elements.barCanvas.width,elements.barCanvas.height);elements.barLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data);if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].CGU++;});rowsTCU.forEach(function(r){var y=r.Ano;if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].TCU++;});var labels=Object.keys(agg).sort(function(a,b){return a-b;});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.barCanvas.width/2,elements.barCanvas.height/2);return;}var pad={t:20,r:16,b:40,l:28},w=elements.barCanvas.width-pad.l-pad.r,h=elements.barCanvas.height-pad.t-pad.b,max=1;labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();ctx.fillStyle='#555';ctx.textAlign='right';for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}var groupW=w/labels.length,barW=Math.max(8,groupW*0.35);var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu').trim()||'#0a9396';var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu').trim()||'#94d2bd';labels.forEach(function(y,i){var x=pad.l+i*groupW+groupW/2;var hCGU=(agg[y].CGU/max)*h,hTCU=(agg[y].TCU/max)*h;ctx.fillStyle=cguColor;ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);ctx.fillStyle=tcuColor;ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);});elements.barLegend.innerHTML='<div><span class="legend-box" style="background:'+cguColor+'"></span>CGU</div><div><span class="legend-box" style="background:'+tcuColor+'"></span>TCU</div>';}
+  function drawPie(rowsCGU){var ctx=elements.pieCanvas.getContext('2d');ctx.clearRect(0,0,elements.pieCanvas.width,elements.pieCanvas.height);elements.pieLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var u=r.UF||'N/A';agg[u]=(agg[u]||0)+1;});var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.pieCanvas.width/2,elements.pieCanvas.height/2);return;}var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];var total=labels.reduce(function(s,k){return s+agg[k];},0);var start=-Math.PI/2,cx=elements.pieCanvas.width/2,cy=elements.pieCanvas.height/2,r=Math.min(cx,cy)-14;labels.forEach(function(label,i){var val=agg[label],ang=(val/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();var pct=(val/total*100).toFixed(1)+'%';var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';elements.pieLegend.appendChild(d);start+=ang;});}
+
+  function applyFilters() {
+    var txt = norm(elements.fTexto.value);
+    var ano = elements.fAno.value;
+    var uf = elements.fUf.value;
+    var org = elements.fOrgao.value;
+
+    var filteredCGU = CGU.filter(function(r) {
+        if (org && org !== 'CGU') return false;
+        if (uf && r.UF !== uf) return false;
+        if (ano && getYearFromDateStr(r.Data) !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+    var filteredTCU = TCU.filter(function(r) {
+        if (org && org !== 'TCU') return false;
+        if (ano && r.Ano !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+
+    elements.cguVis.textContent = filteredCGU.length;
+    elements.tcuVis.textContent = filteredTCU.length;
+    renderTables(filteredCGU, filteredTCU); // A função renderTables já inclui a renderização da tabela de achados
+    drawBar(filteredCGU, filteredTCU);
+    drawPie(filteredCGU);
+  }
+
+  [elements.fTexto, elements.fAno, elements.fUf, elements.fOrgao].forEach(function(el) {
+    el.addEventListener('input', applyFilters);
+  });
+
+  elements.btnClear.addEventListener('click', function() {
+    elements.fTexto.value = '';
+    elements.fAno.value = '';
+    elements.fUf.value = '';
+    elements.fOrgao.value = '';
+    applyFilters();
+  });
+
+  applyFilters();
+});
+</script>
+</body>
+</html>
