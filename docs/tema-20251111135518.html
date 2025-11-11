@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px}
+#resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.filter-group{flex:1 1 220px}
+.filters label{font-weight:600;display:block;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.btn-clear{padding:10px 16px;border:1px solid var(--b);border-radius:8px;background:#fff;cursor:pointer;color:var(--pri);font-weight:600}
+.btn-clear:hover{background:var(--bg)}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+td{min-width:120px}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap}
+a.link:hover{text-decoration:underline}
+.no-results,.loading{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+.keyword-tag { margin-right: 5px; padding: 2px 6px; font-size: 12px; background-color: #e9ecef; border-radius: 4px; display: inline-block; margin-bottom: 3px; }
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script id="seed" type="application/json">{"resumo":"Exibindo os itens mais relevantes por fonte para \"MAC\".","cgu_tabela":[{"Título":"Relatório de Fiscalização nº 201801614 - Teto MAC CriciúmaSC","Data":"12/11/2019","UF":"SC","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855949"},{"Título":"Relatório nº 201801617 - Teto MAC Rio do Sul/SC","Data":"12/11/2019","UF":"SC","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855945"},{"Título":"Relatório de Fiscalização nº 201801566 - Teto MAC Blumenau/SC","Data":"23/10/2019","UF":"SC","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855947"},{"Título":"Relatório de Fiscalização nº 201801616 - Teto MAC Lages/SC","Data":"23/10/2019","UF":"SC","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855946"},{"Título":"Relatório N° 201900083 - Fundo Municipal de Saúde de São Miguel do Oeste/SC - Atenção à Saúde da População para Procedimentos em Média e Alta Complexidade (MAC)","Data":"13/10/2019","UF":"SC","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855978"},{"Título":"Relatório nº 201801570 - Teto MAC","Data":"10/12/2019","UF":"SC","Unidade Auditada":"Diretoria-Executiva do Fundo Nacional de Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855950"},{"Título":"Relatório nº 201702107 - Descontos do Teto MAC - Oncologia","Data":"24/04/2019","UF":"BA","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856550"},{"Título":"Relatório nº 201800042 - Fundo Municipal de Saúde de Maceió/AL - AEPG Fiscalização de Desconto do Teto MAC","Data":"24/01/2019","UF":"AL","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856829"},{"Título":"Relatorio n.º 201800026 SES-PE AEPG PNCC - Desconto Teto MAC","Data":"28/12/2018","UF":"PE","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856960"},{"Título":"RDE nº 201505917 - Aquisição de medicamentos e insumos para a Assistência Farmacêutica Básica (AFB) e de Média e Alta Complexidade (MAC)","Data":"19/12/2018","UF":"GO","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856904"}],"tcu_tabela":[{"Ano":"2025","Assunto":"Representação acerca da contratação de empresa para apoio à administração pública municipal para a execução de projetos que elevem quantitativa e qualitativamente os serviços de relevância pública nas áreas da Saúde, Educação e Assistência Social, no município de Colinas/TO","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=886144","Órgão":"TCU"},{"Ano":"2024","Assunto":"Representação acerca de possíveis irregularidades em repasse de emendas de relator (RP 9) destinadas ao pagamento de procedimentos na área da saúde em municípios no estado do Maranhão.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=853854","Órgão":"TCU"},{"Ano":"2023","Assunto":"Representação sobre supostas irregularidades em pregão eletrônico para registro de preços com a finalidade de respaldar aquisições de gêneros alimentícios para dezoito hospitais estaduais distribuídos em diversos municípios do Estado do Tocantins.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=835844","Órgão":"TCU"},{"Ano":"2023","Assunto":"Solicitação do congresso nacional para realização de fiscalização para apurar denúncias de fraudes no Sistema Único de Saúde com recursos das emendas do Relator-Geral (RP 9).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=815245","Órgão":"TCU"},{"Ano":"2022","Assunto":"REPRESENTAÇÃO. contratação de serviços hospitalares (média e alta complexidade) para atendimento na rede complementar de assistência emsaúde a fim de atender a área de abrangência da gestão municipal do SUS, tendo como entidade contratada a Fundação Assistência da Paraíba - FAP, no total de R$ 14.141.355,13, com vigência de 12 meses.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=806452","Órgão":"TCU"},{"Ano":"2022","Assunto":"Fiscalização de orientação centralizada com o objetivo de avaliar a aquisição de medicamentos que ocorrem de forma centralizada pelo Ministério da Saúde (MS) e os que são financiados por esse ministério mediante transferência de recursos financeiros para aquisição pelas secretarias estaduais e municipais de saúde.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=795280","Órgão":"TCU"},{"Ano":"2022","Assunto":"Recurso de reconsideração interposto por Renilde Silva Bulhões Barros, ex-prefeita, e Maria Izabel Barros da Costa, ex-secretária municipal de saúde de Santana do Ipanema/AL contra o Acórdão 2265/2022-TCU-2a Câmara, mantido pelo Acórdão 5464/2022-TCU-2a Câmara.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=869957","Órgão":"TCU"},{"Ano":"2020","Assunto":"Recurso de reconsideração interposto contra o Acórdão 2381/2020-1a Câmara que julgou irregulares as contas da recorrente, condenou-a ao pagamento do débito apurado e aplicou-llhe multa.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=855883","Órgão":"TCU"},{"Ano":"2017","Assunto":"Relatório de Auditoria realizada com o objetivo de analisar a regularidade de quatro processos de contratação realizados durante os exercícios 2017 e 2018, tendo como objeto a aquisição de material médico-hospitalar e de medicamentos, bem como verificar se a aplicação das emendas parlamentares que adicionaram recursos ao SUS no exercício de 2017, para incremento do Teto de Média e Alta Complexidade e do Piso de Atenção Básica, obedeceu ao estabelecido na legislação vigente.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=801700","Órgão":"TCU"},{"Ano":"1920","Assunto":"TCE instaurada pelo(a) FUNDO NACIONAL DE SAÚDE - MS em razão de Não comprovação da regular aplicação dos recursos repassados pela União, função SAUDE, para atendimento à/ao MAC - TETO MUNICIPAL MÉDIA E ALTA COMPLEX. AMBULAT. E HOSPITALAR (no da TCE no sistema: 1920/2020).","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=841814","Órgão":"TCU"}],"achados_tabela":[{"tipo":"Achado","descricao":"Foram identificadas fragilidades no controle entre autorização e realização de procedimentos oftalmológicos, elevando o risco de faturamento por serviços não prestados. Clínicas privadas, quando solicitantes e executantes, podem obter chaves de solicitação e confirmação no SISREG antecipadamente, permitindo faturamento indevido.","palavras_chave":["faturamento indevido","SISREG","procedimentos oftalmológicos","controle"]},{"tipo":"Achado","descricao":"Constatou-se faturamento indevido de procedimento de catarata por clínica particular, sem registro no SISREG, enquanto o mesmo procedimento foi realizado em hospital público. Houve duplicidade de faturamento em procedimentos que não poderiam ser realizados mais de uma vez por olho, gerando prejuízo.","palavras_chave":["faturamento indevido","catarata","SISREG","duplicidade"]},{"tipo":"Fragilidade","descricao":"A conferência da produção informada pelas clínicas no SIA/SUS é baseada nas críticas internas dos sistemas, sem mecanismos adicionais de validação, como coleta de assinaturas dos pacientes. A grande quantidade de procedimentos e limitações operacionais inviabilizam a conferência individualizada, tornando os controles insuficientes.","palavras_chave":["SIA/SUS","falta de validação","risco de faturamento","controles insuficientes"]},{"tipo":"Fragilidade","descricao":"O Banco de Olhos do Amazonas (BOA) utiliza registros manuais e planilhas virtuais, elevando o risco de perda de dados e inconsistências nas informações comunicadas aos órgãos competentes. A ausência de um sistema informatizado para controle da distribuição de córneas compromete a rastreabilidade e a segurança dos dados.","palavras_chave":["BOA","registros manuais","perda de dados","inconsistências"]},{"tipo":"Recomendação","descricao":"A Secretaria de Saúde do Estado do Amazonas (SES-AM) deve adotar ações corretivas para as fragilidades encontradas na execução dos recursos públicos na contratação de clínicas credenciadas para oftalmologia.","palavras_chave":["SES-AM","ações corretivas","oftalmologia","recursos públicos"]},{"tipo":"Achado","descricao":"A Secretaria Municipal de Saúde de Valinhos/SP utilizou recursos federais do bloco investimento (Portaria GM/MS nº 837/2009) no valor de R$ 845.424,15 para pagamento de despesa de custeio (prestação de serviços pelo INASE), em descumprimento com a legislação, caracterizando desvio de objeto.","palavras_chave":["desvio de objeto","R$ 845.424,15","Valinhos/SP","Portaria GM/MS nº 837/2009"]},{"tipo":"Achado","descricao":"A Secretaria de Estado da Saúde do Rio Grande do Norte (SESAP/RN) e a Avante Social incorreram em inconsistências nos pagamentos e no encontro de contas, resultando em prejuízo de R$ 2.089.831,98 ao erário. As glosas determinadas pela fiscalização não foram integralmente aplicadas.","palavras_chave":["prejuízo ao erário","R$ 2.089.831,98","SESAP/RN","Avante Social"]},{"tipo":"Achado","descricao":"Apesar da necessidade de ajustes no contrato nº 512/2020, firmado entre a SESAP/RN e a Avante Social, não foi formalizado Termo Aditivo. As alterações necessárias foram discutidas em audiência judicial, mas o contrato permaneceu desatualizado e inadequado à realidade dos serviços prestados.","palavras_chave":["Termo Aditivo","contrato desatualizado","SESAP/RN","Avante Social"]},{"tipo":"Achado","descricao":"Foram constatadas diversas desconformidades operacionais nos leitos de UTI contratados, como baixa ocupação, ausência de registros padronizados, falta de evolução médica noturna, ausência de profissionais e dificuldades na transição de equipamentos, mesmo após o término do contrato.","palavras_chave":["leitos UTI","desconformidades operacionais","contrato","serviços"]},{"tipo":"Fragilidade","descricao":"O Ministério da Saúde não formalizou um diagnóstico sobre as fragilidades da média e alta complexidade (MAC) para o CMD, especialmente em relação aos aspectos críticos. A ausência de ferramentas analíticas formais no planejamento compromete a clareza e a objetividade na identificação do problema e das causas.","palavras_chave":["CMD","falta de diagnóstico","MAC","planejamento"]},{"tipo":"Fragilidade","descricao":"Não foram mapeadas as limitações e incentivos para a substituição dos sistemas SIA e SIH pelo CMD, o que pode dificultar a redução de conflitos de interesse e o aperfeiçoamento dos arranjos institucionais. A falta de mapeamento formal compromete a efetividade da implementação.","palavras_chave":["CMD","SIA","SIH","conflitos de interesse"]},{"tipo":"Fragilidade","descricao":"Não foram estabelecidos indicadores, metas ou cronogramas para monitorar a implantação do CMD, embora o projeto conste como prioritário no PNS. A ausência de mecanismos formais de acompanhamento compromete o monitoramento e a revisão das ações.","palavras_chave":["CMD","falta de monitoramento","PNS","indicadores"]},{"tipo":"Fragilidade","descricao":"A SUEST/CE teve dificuldades em fornecer informações completas e consistentes sobre a tramitação dos convênios, prejudicando a aplicação de testes planejados e a análise estatística. Isso evidencia ausência de monitoramento e aferição de desempenho interno.","palavras_chave":["SUEST/CE","dados incompletos","monitoramento","convênios"]},{"tipo":"Achado","descricao":"Houve descumprimento do prazo inicial de vigência em 98% dos convênios celebrados entre 2008 e 2017, com prorrogações recorrentes, impactando negativamente a população. De 303 convênios, apenas 3 foram executados no prazo original, totalizando mais de R$ 400 milhões.","palavras_chave":["descumprimento de prazos","convênios","R$ 400 milhões","SUEST/CE"]},{"tipo":"Achado","descricao":"Foram identificados 82 convênios entre 2011 e 2019 sem liberação de parcelas, somando R$ 207,6 milhões, incluindo ações de saúde ambiental e saneamento. A demora decorre de falhas no monitoramento e acompanhamento técnico-administrativo.","palavras_chave":["convênios sem liberação","R$ 207,6 milhões","SUEST/CE","monitoramento"]},{"tipo":"Achado","descricao":"Em 193 convênios analisados, observou-se grande variação na duração das análises técnicas dos projetos básicos, com casos de até 7 anos para projetos simples. A média de análise técnica foi superior a 440 dias, com falta de prazos normativos internos.","palavras_chave":["análise técnica","projetos básicos","SUEST/CE","prazos"]},{"tipo":"Achado","descricao":"O município de Governador Mangabeira/BA optou pelo pregão presencial sem justificativa para não adoção do pregão eletrônico, restringindo a competitividade e limitando a participação a empresas locais de pequeno porte. Não houve demonstração da inviabilidade do pregão eletrônico.","palavras_chave":["pregão presencial","Governador Mangabeira/BA","competitividade","pregão eletrônico"]},{"tipo":"Achado","descricao":"A adoção de locação por km livre gerou contratação antieconômica. O contrato previu km livre para todos os veículos, desconsiderando a real demanda das secretarias. Pesquisas de mercado indicaram valores inferiores para contratos com franquia de km, evidenciando desperdício.","palavras_chave":["locação por km livre","antieconômico","Governador Mangabeira/BA","desperdício"]},{"tipo":"Achado","descricao":"Foram identificados indícios de simulação de cotação de preços. As cotações foram feitas por telefone ou pessoalmente com empresas locais de pequeno porte, desconsiderando grandes locadoras. Os valores cotados ficaram acima da média de mercado, sugerindo sobrepreço.","palavras_chave":["simulação de cotação","sobrepreço","Governador Mangabeira/BA","preços"]},{"tipo":"Achado","descricao":"A subcontratação quase integral do objeto, com a contratada atuando como mera intermediária. Dos 41 veículos utilizados, apenas 4 pertenciam à ACRES; os demais eram de pessoas físicas locais, que assumiram todos os custos e responsabilidades. Configurando intermediação indevida.","palavras_chave":["subcontratação","intermediação indevida","ACRES","Governador Mangabeira/BA"]},{"tipo":"Achado","descricao":"O prejuízo econômico foi de R$ 330.896,00 aos cofres públicos. Os proprietários dos veículos recebiam R$ 2.156,00 mensais, enquanto a contratada recebia R$ 2.700,00 a R$ 2.800,00, sem agregar valor ou assumir custos operacionais, caracterizando superfaturamento.","palavras_chave":["prejuízo econômico","R$ 330.896,00","superfaturamento","Governador Mangabeira/BA"]},{"tipo":"Recomendação","descricao":"Recomenda-se que o município de Governador Mangabeira/BA, em futuras contratações de locação de veículos, adote preferencialmente o pregão eletrônico, justificando tecnicamente eventual adoção do presencial.","palavras_chave":["pregão eletrônico","Governador Mangabeira/BA","contratações futuras","recomendações"]},{"tipo":"Recomendação","descricao":"Recomenda-se que o município de Governador Mangabeira/BA utilize critérios de contratação compatíveis com a real demanda, especialmente quanto à franquia de km.","palavras_chave":["Governador Mangabeira/BA","franquia de km","contratação","demanda"]},{"tipo":"Recomendação","descricao":"Recomenda-se que o município de Governador Mangabeira/BA adote medidas para recuperar eventuais prejuízos identificados e revise seus procedimentos internos de contratação e fiscalização.","palavras_chave":["Governador Mangabeira/BA","prejuízos","contratação","fiscalização"]},{"tipo":"Achado","descricao":"O Ministério da Saúde apresentou distorções quantitativas de R$ 44,29 bilhões e distorções qualitativas que comprometem a compreensão da situação patrimonial. As principais causas foram a inexistência de mecanismos de monitoramento e interpretações divergentes.","palavras_chave":["distorções contábeis","R$ 44,29 bilhões","Ministério da Saúde","monitoramento"]},{"tipo":"Achado","descricao":"A Secretaria Municipal de Saúde (SMS) de Crato, Ceará, apresentou deficiência na elaboração da pesquisa de preços de mercado, restringindo-se a cotações com poucos fornecedores, sem justificativa, contrariando a legislação e podendo resultar em sobrepreço.","palavras_chave":["pesquisa de preços","Crato/CE","sobrepreço","SMS"]},{"tipo":"Achado","descricao":"O Termo de Referência da SMS de Crato, Ceará, carecia de justificativa adequada, estudos técnicos preliminares e descrição detalhada dos serviços, comprometendo a competitividade e a isonomia, podendo favorecer direcionamento, em desacordo com a legislação.","palavras_chave":["Termo de Referência","Crato/CE","direcionamento","SMS"]},{"tipo":"Achado","descricao":"O edital da SMS de Crato, Ceará, continha cláusulas restritivas à competitividade, como limitação de acesso, restrição à participação de empresas em recuperação judicial, exigências excessivas de atestados e vedação à participação de consórcios, contrariando princípios.","palavras_chave":["edital restritivo","Crato/CE","competitividade","SMS"]},{"tipo":"Achado","descricao":"A SMS de Crato, Ceará, escolheu a modalidade concorrência sem justificar a não adoção do pregão eletrônico, contrariando o princípio da eficiência. Não houve avaliação sobre a possibilidade de divisão do objeto em lotes, o que poderia ampliar a competitividade.","palavras_chave":["modalidade licitatória","Crato/CE","eficiência","SMS"]},{"tipo":"Achado","descricao":"Foram identificadas irregularidades nos processos de pagamento da SMS de Crato, Ceará, totalizando prejuízo ao erário de R$ 1.632.473,67, decorrente de pagamentos sem comprovação, duplicidade e sobreposição de atividades em diversas áreas.","palavras_chave":["pagamentos irregulares","R$ 1.632.473,67","Crato/CE","SMS"]},{"tipo":"Achado","descricao":"A SMS de Crato, Ceará, designou gerente de contrato, função não prevista, em vez de fiscal de contrato, comprometendo o acompanhamento e fiscalização da execução contratual, contrariando as boas práticas de gestão.","palavras_chave":["fiscal de contrato","Crato/CE","execução contratual","SMS"]}]}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div class="filter-group"><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div class="filter-group"><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+    <div><button id="btn-clear-filters" class="btn-clear">Limpar Filtros</button></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-cgu"><thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="6">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-tcu"><thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="3">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+  
+  <!-- <<< NOVO HTML PARA A TABELA DE ACHADOS >>> -->
+  <div class="card section">
+    <h2>CGU/TCU - Achados e Recomendações</h2>
+    <div class="table-wrap">
+      <table id="tbl-achados">
+        <thead>
+          <tr>
+            <th style="width:15%;">Tipo</th>
+            <th>Descrição</th>
+            <th style="width:25%;">Palavras-Chave</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="loading"><td colspan="3">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function getYearFromDateStr(s) {
+    var match = String(s || '').match(/\b(\d{4})\b/);
+    return match ? match[1] : '';
+  }
+  function textOrEmpty(v) { return v === 0 ? '0' : (v == null ? '' : String(v)); }
+  function escapeRegExp(s) { return String(s).replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&'); }
+
+  var seed = { resumo: '', cgu_tabela: [], tcu_tabela: [], achados_tabela: [] };
+  try {
+    seed = JSON.parse(document.getElementById('seed').textContent || '{}');
+  } catch (e) {
+    console.error("Erro ao ler dados do painel:", e);
+  }
+
+  var elements = {
+      titulo: document.getElementById('titulo'),
+      resumo: document.getElementById('resumo'),
+      fTexto: document.getElementById('f-texto'),
+      fAno: document.getElementById('f-ano'),
+      fUf: document.getElementById('f-uf'),
+      fOrgao: document.getElementById('f-orgao'),
+      btnClear: document.getElementById('btn-clear-filters'),
+      cguVis: document.getElementById('cgu-vis'),
+      cguTot: document.getElementById('cgu-tot'),
+      tcuVis: document.getElementById('tcu-vis'),
+      tcuTot: document.getElementById('tcu-tot'),
+      cguBody: document.querySelector('#tbl-cgu tbody'),
+      tcuBody: document.querySelector('#tbl-tcu tbody'),
+      achadosBody: document.querySelector('#tbl-achados tbody'), // <<< ADICIONADO: referência à nova tabela
+      barCanvas: document.getElementById('bar'),
+      pieCanvas: document.getElementById('pie'),
+      barLegend: document.getElementById('bar-legend'),
+      pieLegend: document.getElementById('pie-legend'),
+  };
+
+  var themeMatch = (seed.resumo || '').match(/"([^"]+)"/);
+  var SEARCH_PHRASE = themeMatch ? themeMatch[1].trim() : '';
+  var STOP_WORDS = new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que']);
+  var searchTerms = (SEARCH_PHRASE ? SEARCH_PHRASE.split(/\s+/) : []).filter(function(w) { return w && w.length >= 2 && !STOP_WORDS.has(norm(w)); });
+  var DIACRITICS = {'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  var diacriticPart = function(s) { return s.split('').map(function(ch) { return DIACRITICS[ch.toLowerCase()] || (ch.match(/\s/) ? '\\s+' : escapeRegExp(ch)); }).join(''); };
+  var searchParts = [SEARCH_PHRASE].concat(searchTerms).filter(Boolean).map(diacriticPart);
+  var SEARCH_RE = searchParts.length ? new RegExp('(?:^|\\b)(' + searchParts.join('|') + ')(?=\\b|$)', 'gi') : null;
+  
+  function highlightBold(txt) {
+      var s = textOrEmpty(txt);
+      return SEARCH_RE ? s.replace(SEARCH_RE, function(m) { return '<b class="hl">' + m + '</b>'; }) : s;
+  };
+
+  document.title = 'Painel de ' + (SEARCH_PHRASE || 'Auditoria');
+  elements.titulo.textContent = document.title;
+  elements.resumo.textContent = textOrEmpty(seed.resumo);
+
+  var CGU = (seed.cgu_tabela || []).map(function(x) { return Object.assign({_src:'CGU'}, x); });
+  var TCU = (seed.tcu_tabela || []).map(function(x) { return Object.assign({_src:'TCU'}, x); }).sort(function(a, b) { return (b.Ano || 0) - (a.Ano || 0); });
+  
+  elements.cguTot.textContent = CGU.length;
+  elements.tcuTot.textContent = TCU.length;
+  
+  var yearSet = {};
+  CGU.forEach(function(r) { var y = getYearFromDateStr(r.Data); if(y) yearSet[y] = true; });
+  TCU.forEach(function(r) { if(r.Ano) yearSet[r.Ano] = true; });
+  Object.keys(yearSet).sort(function(a,b) { return b-a; }).forEach(function(y) { elements.fAno.add(new Option(y, y)); });
+  
+  var ufSet = {};
+  CGU.forEach(function(r) { if(r.UF && r.UF !== 'N/A') ufSet[r.UF] = true; });
+  Object.keys(ufSet).sort().forEach(function(u) { elements.fUf.add(new Option(u, u)); });
+
+  function renderTables(rowsCGU, rowsTCU) {
+    function renderBody(tbody, rows, rowHTMLGenerator, colSpan) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+            tbody.innerHTML = '<tr class="no-results"><td colspan="' + colSpan + '">Nenhum registro para exibir.</td></tr>';
+        } else {
+            rows.forEach(function(row) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = rowHTMLGenerator(row);
+                tbody.appendChild(tr);
+            });
+        }
+    };
+    renderBody(elements.cguBody, rowsCGU, function(r) {
+        return '<td>' + highlightBold(r['Título']) + '</td><td>' + r.Data + '</td><td>' + r.UF + '</td><td>' + r['Unidade Auditada'] + '</td><td>' + r['Tipo de Serviço'] + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 6);
+    renderBody(elements.tcuBody, rowsTCU, function(r) {
+        return '<td>' + r.Ano + '</td><td>' + highlightBold(r.Assunto) + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 3);
+    
+    // <<< NOVO: RENDERIZAR A TABELA DE ACHADOS >>>
+    var achadosRows = seed.achados_tabela || [];
+    renderBody(elements.achadosBody, achadosRows, function(r) {
+        var palavrasChaveHtml = (r.palavras_chave || []).map(function(k) {
+            return '<span class="keyword-tag">' + k + '</span>';
+        }).join(' ');
+        
+        var tipoClass = '';
+        if (r.tipo === 'Achado') tipoClass = 'color: #c91a34;';
+        if (r.tipo === 'Fragilidade') tipoClass = 'color: #d97706;';
+        if (r.tipo === 'Recomendação') tipoClass = 'color: #059669;';
+
+        return '<td style="' + tipoClass + '"><b>' + r.tipo + '</b></td><td>' + highlightBold(r.descricao) + '</td><td>' + palavrasChaveHtml + '</td>';
+    }, 3);
+  }
+  
+  function drawBar(rowsCGU,rowsTCU){var ctx=elements.barCanvas.getContext('2d');ctx.clearRect(0,0,elements.barCanvas.width,elements.barCanvas.height);elements.barLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data);if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].CGU++;});rowsTCU.forEach(function(r){var y=r.Ano;if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].TCU++;});var labels=Object.keys(agg).sort(function(a,b){return a-b;});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.barCanvas.width/2,elements.barCanvas.height/2);return;}var pad={t:20,r:16,b:40,l:28},w=elements.barCanvas.width-pad.l-pad.r,h=elements.barCanvas.height-pad.t-pad.b,max=1;labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();ctx.fillStyle='#555';ctx.textAlign='right';for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}var groupW=w/labels.length,barW=Math.max(8,groupW*0.35);var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu').trim()||'#0a9396';var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu').trim()||'#94d2bd';labels.forEach(function(y,i){var x=pad.l+i*groupW+groupW/2;var hCGU=(agg[y].CGU/max)*h,hTCU=(agg[y].TCU/max)*h;ctx.fillStyle=cguColor;ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);ctx.fillStyle=tcuColor;ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);});elements.barLegend.innerHTML='<div><span class="legend-box" style="background:'+cguColor+'"></span>CGU</div><div><span class="legend-box" style="background:'+tcuColor+'"></span>TCU</div>';}
+  function drawPie(rowsCGU){var ctx=elements.pieCanvas.getContext('2d');ctx.clearRect(0,0,elements.pieCanvas.width,elements.pieCanvas.height);elements.pieLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var u=r.UF||'N/A';agg[u]=(agg[u]||0)+1;});var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.pieCanvas.width/2,elements.pieCanvas.height/2);return;}var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];var total=labels.reduce(function(s,k){return s+agg[k];},0);var start=-Math.PI/2,cx=elements.pieCanvas.width/2,cy=elements.pieCanvas.height/2,r=Math.min(cx,cy)-14;labels.forEach(function(label,i){var val=agg[label],ang=(val/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();var pct=(val/total*100).toFixed(1)+'%';var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';elements.pieLegend.appendChild(d);start+=ang;});}
+
+  function applyFilters() {
+    var txt = norm(elements.fTexto.value);
+    var ano = elements.fAno.value;
+    var uf = elements.fUf.value;
+    var org = elements.fOrgao.value;
+
+    var filteredCGU = CGU.filter(function(r) {
+        if (org && org !== 'CGU') return false;
+        if (uf && r.UF !== uf) return false;
+        if (ano && getYearFromDateStr(r.Data) !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+    var filteredTCU = TCU.filter(function(r) {
+        if (org && org !== 'TCU') return false;
+        if (ano && r.Ano !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+
+    elements.cguVis.textContent = filteredCGU.length;
+    elements.tcuVis.textContent = filteredTCU.length;
+    renderTables(filteredCGU, filteredTCU); // A função renderTables já inclui a renderização da tabela de achados
+    drawBar(filteredCGU, filteredTCU);
+    drawPie(filteredCGU);
+  }
+
+  [elements.fTexto, elements.fAno, elements.fUf, elements.fOrgao].forEach(function(el) {
+    el.addEventListener('input', applyFilters);
+  });
+
+  elements.btnClear.addEventListener('click', function() {
+    elements.fTexto.value = '';
+    elements.fAno.value = '';
+    elements.fUf.value = '';
+    elements.fOrgao.value = '';
+    applyFilters();
+  });
+
+  applyFilters();
+});
+</script>
+</body>
+</html>
