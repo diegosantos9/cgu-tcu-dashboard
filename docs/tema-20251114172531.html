@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel de Auditoria</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--txt:#222;--muted:#6c757d;--b:#e6e8ec;--pri:#0d3b66;--acc:#0077b6;--cgu:#0a9396;--tcu:#94d2bd;--shadow:0 4px 10px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{padding:18px 0 6px;margin-bottom:12px;border-bottom:1px solid var(--b);text-align:center}
+h1{margin:0;color:var(--pri);font-size:28px}
+#resumo{margin:10px 0 0;color:#333}
+.card{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.filter-group{flex:1 1 220px}
+.filters label{font-weight:600;display:block;margin-bottom:6px;color:var(--pri)}
+.filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:#fff}
+.btn-clear{padding:10px 16px;border:1px solid var(--b);border-radius:8px;background:#fff;cursor:pointer;color:var(--pri);font-weight:600}
+.btn-clear:hover{background:var(--bg)}
+.section h2{margin:0 0 10px;color:var(--pri)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--b);padding:10px 12px;text-align:left;vertical-align:top}
+td{min-width:120px}
+th{background:#f4f6f8;position:sticky;top:0;z-index:1}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f1f5f9}
+a.link{color:var(--acc);text-decoration:none;white-space:nowrap}
+a.link:hover{text-decoration:underline}
+.no-results,.loading{padding:24px;text-align:center;color:var(--muted);font-style:italic}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card h3{margin:2px 0 10px;color:var(--pri);text-align:center}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.legend-box{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block;vertical-align:middle}
+.hl{background:#FFF3CD;padding:0 3px;border-radius:3px}
+.kpi{font-size:13px;color:var(--muted)}
+.keyword-tag { margin-right: 5px; padding: 2px 6px; font-size: 12px; background-color: #e9ecef; border-radius: 4px; display: inline-block; margin-bottom: 3px; }
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script id="seed" type="application/json">{"resumo":"Exibindo os itens mais relevantes por fonte para \"SESAI\".","cgu_tabela":[{"Título":"Relatório de Auditoria Anual de Contas - 201600605 - Secretaria Especial de Saúde Indígena - SESAI - Exercício 2015","Data":"18/11/2016","UF":"DF","Unidade Auditada":"Secretaria de Saúde Indígena","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/860307"},{"Título":"Relatório Técnico - Emendas parlamentares (RP 8 e RP 9) destinadas a municípios: etapa 1 (ADPF 854)","Data":"19/11/2024","UF":"TO","Unidade Auditada":"Ministério das Cidades;Ministério da Saúde;Ministério do Desenvolvimento Agrário e Agricultura Familiar;Ministério do Esporte;Ministério do Turismo;Ministério da Defesa;Ministério da Educação;Ministério da Integração e do Desenvolvimento Regional;Ministério da Agricultura e Pecuária;Ministério do Desenvolvimento e Assistência Social, Família e Combate à Fome","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1729694"},{"Título":"Relatório de Apuração nº 822229 - Saúde - PAB Fixo  - Município de Dom Expedito Lopes","Data":"19/06/2023","UF":"PI","Unidade Auditada":"Diretoria-Executiva do Fundo Nacional de Saúde","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1477659"},{"Título":"Nota Técnica nº 1839/2021/CGSAU/DS/SFC - Análise dos aspectos de legalidade e conformidade, de acordo com o escopo estabelecido, dos processos de aquisição e de importação da Vacina Covaxin - Ministério da Saúde","Data":"09/08/2021","UF":"DF","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/1018211"},{"Título":"Relatório de Avaliação nº 815139  Secretaria de Vigilância em Saúde do Ministério da Saúde - Acordo de Cooperação Técnica Internacional PNUD BRA/15/004  Exercício 2019","Data":"27/10/2020","UF":"DF","Unidade Auditada":"Ministério da Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/886939"},{"Título":"Relatório de Análise Preventiva de Edital - PE 21/2020 - Fiocruz Minas","Data":"04/08/2020","UF":"MG","Unidade Auditada":"Fundação Oswaldo Cruz","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/874687"},{"Título":"RDE n° 201408884 - Atenção Básica em Saúde/Estruturação da Rede de Serviços de Atenção Básica em Saúde","Data":"21/08/2019","UF":"CE","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Apuração","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856067"},{"Título":"Relatório nº 201800546 - Secretaria Municipal de Saúde de Fortaleza - Política Nacional de Controle e Combate ao Câncer.","Data":"23/06/2019","UF":"CE","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856313"},{"Título":"Relatório nº 201802185 - Santa Casa de Caridade de Formiga","Data":"05/12/2019","UF":"MG","Unidade Auditada":"Diretoria-Executiva do Fundo Nacional de Saúde","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/855724"},{"Título":"Relatório de Avaliação dos Resultados da Gestão nº 201602462 - Prefeitura Municipal de Porto Alegre/RS","Data":"19/12/2018","UF":"RS","Unidade Auditada":"Secretaria-Executiva","Tipo de Serviço":"Avaliação","Órgão":"CGU","Link":"https://ecgu.cgu.gov.br/relatorio/856844"}],"tcu_tabela":[{"Ano":"2024","Assunto":"Representação sobre possíveis irregularidades em pregão eletrônico cujo objeto é a contratação de empresa especializada nos serviços de transporte aéreo.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=878164","Órgão":"TCU"},{"Ano":"2023","Assunto":"Representação a respeito de possíveis irregularidades relativas ao Contrato 2/2023, celebrado entre Distrito Sanitário Especial Indígena Leste de Roraima (DseiLRR) e a empresa Reche Galdeano & Cia Ltda.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=837753","Órgão":"TCU"},{"Ano":"2023","Assunto":"Solicitação do Congresso Nacional para a realização de auditoria na execução orçamentária da Secretaria Especial de Saúde Indígena para o enfrentamento da pandemia da Covid-19.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=823732","Órgão":"TCU"},{"Ano":"2023","Assunto":"Solicitação do Congresso Nacional em que se requer a realização de fiscalização dos recursos oriundos da Medida Provisória 1168/2023, que abre crédito extraordinário para atendimento de medidas emergenciais necessárias à proteção da vida, da saúde e da segurança das comunidades indígenas.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=874497","Órgão":"TCU"},{"Ano":"2022","Assunto":"Pedido de prorrogação de prazo para a finalização da auditoria realizada em decorrência de solicitação do congresso nacional, referente à execução orçamentária, no âmbito da SESAI, para o enfrentamento da pandemia da Covid-19.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=786586","Órgão":"TCU"},{"Ano":"2021","Assunto":"Solicitação do Congresso Nacional em que o então Presidente da CPI da pandemia, ao comunicar o encerramento dos trabalhos da referida Comissão e encaminhar cópia do relatório final a este TCU, requer: i) realização de auditoria acerca da contratação da vacina Covaxin; ii) informações sobre o andamento dos TCs 025.828/2021-5 e 037.065/2019-0, que versam sobre a contratação da VTCLog; e iii) apuração da realização de diversas reuniões no âmbito do Ministério da Saúde MS, envolvendo gestores daquele órgão e empresas farmacêuticas, sem o devido registro em ata.","Link":"https://contas.tcu.gov.br/sagas/SvlVisualizarRelVotoAc?codFiltro=SAGAS-SESSAO-ENCERRADA&seOcultaPagina=S&item0=789186","Órgão":"TCU"}],"achados_tabela":[{"tipo":"Achado","descricao":"No DSEI-Y, foram realizados serviços de transporte aéreo sem cobertura contratual, totalizando R$ 12.227.243,60. Atrasos na abertura de licitação e falta de planejamento foram as causas, com pagamentos efetuados mediante reconhecimento de dívida e apuração de responsabilidades pendente pela Corregedoria do Ministério da Saúde.","palavras_chave":["transporte aéreo","R$ 12.227.243,60","DSEI-Y","falta de contrato","2019"]},{"tipo":"Achado","descricao":"A empresa TARP Taxi Aéreo Ltda operou com o Certificado de Operador Aéreo (COA) suspenso pela ANAC, colocando em risco a segurança dos passageiros. Após o término do contrato, a empresa prestou serviços sem cobertura contratual. O DSEI-Y não aplicou as sanções previstas, com pagamentos irregulares.","palavras_chave":["transporte aéreo","COA suspenso","TARP Taxi Aéreo Ltda","segurança","pagamentos irregulares"]},{"tipo":"Achado","descricao":"No Pregão nº 24/2018, a Icaraí Turismo Táxi Aéreo Ltda foi habilitada mesmo apresentando certidão positiva de débitos municipais, contrariando a legislação. A empresa não apresentou a garantia contratual no prazo, e o DSEI-Y não aplicou as sanções previstas, expondo o erário a riscos.","palavras_chave":["Icaraí Turismo Táxi Aéreo Ltda","habilitação irregular","garantia contratual","Pregão nº 24/2018","risco"]},{"tipo":"Achado","descricao":"Foram identificados serviços prestados pela Icaraí Turismo Táxi Aéreo Ltda antes da formalização do contrato nº 03/2019, com pagamento realizado com base na Ata de Registro de Preços. A demora na formalização contratual resultou em prestação de serviços sem cobertura contratual.","palavras_chave":["Icaraí Turismo Táxi Aéreo Ltda","falta de contrato","pagamento irregular","Ata de Registro de Preços"]},{"tipo":"Achado","descricao":"No DSEI-Y, foram identificadas deficiências em todas as etapas do processo de contratação, incluindo ausência ou inadequação de estudos técnicos, restrição à competitividade e sobrepreço em editais, totalizando R$ 16,7 milhões acima dos valores de mercado. Falhas na gestão contratual, com pagamentos divergentes e ausência de registros.","palavras_chave":["DSEI","contratações","irregularidades","sobrepreço","gestão contratual"]},{"tipo":"Achado","descricao":"No DSEI Interior Sul, foram identificadas falhas na execução do Convênio nº 878440/2018, como contratação de profissionais com sobreposição de vínculos e jornadas superiores a 60 horas semanais, ausência de controle de frequência e contratação sem processo seletivo prévio em 97% dos casos.","palavras_chave":["DSEI Interior Sul","Convênio nº 878440/2018","irregularidades","contratações","falhas"]},{"tipo":"Achado","descricao":"No DSEI/Guatoc, foram identificadas restrições à competitividade no PE nº 05/2017, como a exigência de oficina própria homologada pela ANAC, contrariando o RBAC 135.413. A utilização irregular de Ourilândia/PA como polo base resultou em prejuízo de R$ 372.436,50.","palavras_chave":["DSEI/Guatoc","PE nº 05/2017","restrição à competitividade","Ourilândia/PA","prejuízo"]},{"tipo":"Achado","descricao":"No DSEI/Guatoc, foi constatado o uso de aeronaves não operadas pela Piquiatuba, mas por terceiros, em 772:55 horas de voo, totalizando pagamentos de R$ 2.163.184,55. Em 440:41 dessas horas, a Piquiatuba sequer era proprietária das aeronaves, caracterizando subcontratação irregular.","palavras_chave":["DSEI/Guatoc","Piquiatuba","subcontratação irregular","aeronaves de terceiros","R$ 2.163.184,55"]},{"tipo":"Achado","descricao":"No DSEI/Guatoc, foram utilizadas aeronaves monomotor com capacidade inferior à exigida, resultando em pagamentos indevidos de R$ 196.127,50 e configurando superfaturamento qualitativo. Em 2020, foram pagos R$ 24.225,00 por horas de voo não realizadas devido ao cancelamento de missão por motivos climáticos.","palavras_chave":["DSEI/Guatoc","aeronaves monomotor","superfaturamento","R$ 196.127,50","pagamentos indevidos"]},{"tipo":"Fragilidade","descricao":"No DSEI-Y, o monitoramento dos indicadores do Plano Distrital de Saúde Indígena (PDSI) apresentou fragilidades, especialmente nos indicadores de resultado e impacto. A falta de integração entre o planejamento do Subsistema de Atenção à Saúde Indígena (SasiSUS) e o planejamento geral do SUS prejudicou a articulação.","palavras_chave":["DSEI-Y","PDSI","indicadores","falta de monitoramento","SasiSUS"]},{"tipo":"Fragilidade","descricao":"No DSEI-Y, o processo de registro epidemiológico apresenta fragilidades, com preenchimento manual de formulários, subnotificações e classificações incorretas, agravadas pela limitada disponibilidade de internet. O sistema de informação (Siasi) pode não refletir adequadamente o cenário epidemiológico, impactando o planejamento.","palavras_chave":["DSEI-Y","registro epidemiológico","subnotificações","Siasi","planejamento"]},{"tipo":"Fragilidade","descricao":"No DSEI-Y, a logística de transporte aéreo enfrenta dificuldades, causando atrasos no retorno dos indígenas às comunidades e contribuindo para a superlotação da Casai-Y. A contratação de transporte aéreo apresentou falhas, como dimensionamento inadequado de horas de voo e problemas na gestão contratual.","palavras_chave":["DSEI-Y","transporte aéreo","logística","Casai-Y","gestão contratual"]},{"tipo":"Fragilidade","descricao":"No DSEI-Y, o controle de estoque de medicamentos na CAF é deficiente, com uso inadequado do sistema eletrônico Hórus e inconsistências superiores a 10% entre estoque físico e registrado. Na aquisição de medicamentos, foram verificadas falhas como habilitação de licitantes irregulares e sobrepreço.","palavras_chave":["DSEI-Y","medicamentos","CAF","controle de estoque","Hórus"]},{"tipo":"Fragilidade","descricao":"No DSEI Interior Sul, a instabilidade administrativa, com trocas frequentes na Coordenação, resultou em acompanhamento deficiente da execução financeira do convênio. O monitoramento foi, em grande parte, realizado pela própria conveniada, em detrimento do papel institucional do DSEI.","palavras_chave":["DSEI Interior Sul","convênio","monitoramento","fragilidade","gestão"]},{"tipo":"Fragilidade","descricao":"No DSEI/Guatoc, foram verificadas deficiências no registro e comprovação das horas de voo, ausência de atesto pelos beneficiários, deficiência na fiscalização contratual e falta de adoção de recomendações anteriores da CGU. A fiscalização foi considerada “pró-forma”, expondo a unidade a riscos de pagamentos indevidos.","palavras_chave":["DSEI/Guatoc","fiscalização","controle interno","pagamentos indevidos","fragilidade"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI e o Dsei Yanomami capacitem a força de trabalho envolvida nos processos críticos, incluindo registro de informações assistenciais e epidemiológicas, operação de sistemas de gestão de estoques de medicamentos e condução de processos licitatórios.","palavras_chave":["capacitação","SESAI","DSEI-Y","processos críticos","força de trabalho"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI e o Dsei Yanomami elaborem um plano de ação para logística de transporte de equipes e pacientes, visando reduzir a ocupação na Casai-Y e permitir retorno mais célere dos indígenas às aldeias.","palavras_chave":["plano de ação","logística","transporte","Casai-Y","SESAI"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI e o Dsei Yanomami realizem levantamento dos medicamentos de maior utilização para planejamento das contratações em quantidades suficientes.","palavras_chave":["levantamento","medicamentos","contratações","SESAI","DSEI-Y"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI e o Dsei Yanomami realizem diagnóstico da estrutura e capacidade da Casai-Y, considerando ocupação média mensal e melhorias realizadas durante o período de emergência.","palavras_chave":["diagnóstico","Casai-Y","SESAI","DSEI-Y","estrutura"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao Dsei Yanomami adotar Instrumento de Medição de Resultado ou ferramenta equivalente para avaliação da qualidade da prestação de serviços contratados.","palavras_chave":["DSEI Yanomami","instrumento de medição","qualidade","serviços contratados"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao Dsei Yanomami analisar os impactos da rescisão do aluguel de hangares sobre custos, revisar pagamentos e promover ajustes no Contrato 124/2021, se necessário.","palavras_chave":["DSEI Yanomami","hangares","custos","Contrato 124/2021","revisão"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao Dsei Yanomami promover ajustes na divisão interna de tarefas, garantindo segregação de funções nos procedimentos de contratação e gestão de contratos.","palavras_chave":["DSEI Yanomami","segregação de funções","contratação","gestão de contratos"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao Dsei Yanomami implementar controle sistemático dos prazos de entrega de itens, notificando fornecedores sobre atrasos e tomando diligências previstas em edital e contrato.","palavras_chave":["DSEI Yanomami","prazos de entrega","fornecedores","controle"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a Coordenação do DSEI Interior Sul assuma o acompanhamento e monitoramento da execução financeira do Convênio nº 878440/2018 e futuros instrumentos, corrigindo as falhas e fortalecendo o controle interno.","palavras_chave":["DSEI Interior Sul","monitoramento","Convênio nº 878440/2018","controle interno"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a Coordenação do DSEI Interior Sul verifique individualmente a compatibilidade de horário dos profissionais com múltiplos vínculos e, quando confirmada incompatibilidade, exija a adoção de medidas para desligamento.","palavras_chave":["DSEI Interior Sul","compatibilidade de horário","múltiplos vínculos"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a Coordenação do DSEI Interior Sul exija o registro de frequência, preferencialmente eletrônico, dos profissionais de saúde, para subsidiar o ateste de pagamentos.","palavras_chave":["DSEI Interior Sul","registro de frequência","ateste de pagamentos"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a Coordenação do DSEI Interior Sul exija o devido processo de seleção prévia, com publicidade e impessoalidade, para todos os profissionais contratados com recursos do convênio.","palavras_chave":["DSEI Interior Sul","seleção prévia","publicidade","impessoalidade"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a Coordenação do DSEI Interior Sul exija a restituição das diárias pagas em duplicidade (R$ 1.275,00) à conta do convênio da conveniada.","palavras_chave":["DSEI Interior Sul","restituição","diárias","R$ 1.275,00"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a Coordenação do DSEI Interior Sul promova a substituição formal do Fiscal de Acompanhamento do Convênio, garantindo segregação de funções.","palavras_chave":["DSEI Interior Sul","Fiscal de Acompanhamento","segregação de funções"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI apure responsabilidades pela morosidade na tramitação da licitação para fornecimento de motoristas no RS (Contrato nº 01/2019).","palavras_chave":["SESAI","licitação","motoristas","Contrato nº 01/2019"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI adote medidas para cobrança do valor de R$ 242.871,19 recebido indevidamente pela empresa SC SEG Serviços Especializados Ltda.","palavras_chave":["SESAI","cobrança","R$ 242.871,19","SC SEG Serviços Especializados Ltda."]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI realize pesquisa de mercado, mediante laudo de avaliação, para verificar a vantajosidade do valor de locação do Contrato nº 03/2011.","palavras_chave":["SESAI","pesquisa de mercado","Contrato nº 03/2011","locação"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI realize estudo das necessidades de metragem e imóvel para a sede do DSEI e Polo Base de Florianópolis/SC, considerando índices de ocupação e possibilidade de imóveis distintos.","palavras_chave":["SESAI","metragem","imóvel","DSEI","Polo Base"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI realize estudo das necessidades de metragem para o DSEI em Passo Fundo/RS.","palavras_chave":["SESAI","metragem","DSEI","Passo Fundo/RS"]},{"tipo":"Recomendação","descricao":"Recomenda-se que para cada contrato tenha sido aberto processo SEI específico para registros de fiscalização.","palavras_chave":["processo SEI","registros de fiscalização","contratos"]},{"tipo":"Recomendação","descricao":"Recomenda-se que, no Contrato nº 07/2019, tenha sido verificada a disponibilização integral dos postos de trabalho contratados.","palavras_chave":["Contrato nº 07/2019","postos de trabalho"]},{"tipo":"Recomendação","descricao":"Recomenda-se que, no Contrato nº 07/2019, tenha sido verificado o fornecimento de uniformes aos motoristas.","palavras_chave":["Contrato nº 07/2019","uniformes","motoristas"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a fiscalização dos contratos de motoristas tenha incluído conferência rotineira da reposição de profissionais, com registro e desconto em caso de não reposição.","palavras_chave":["fiscalização","contratos","motoristas","reposição"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a atestação dos serviços de motoristas tenha sido suportada por declaração das áreas coordenadoras, além da folha ponto.","palavras_chave":["atestação","serviços","motoristas","folha ponto"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a atestação dos serviços de motoristas tenha considerado a folha ponto da mesma competência dos serviços pagos.","palavras_chave":["atestação","serviços","motoristas","folha ponto"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI revise a Política Nacional de Saúde Indígena, avaliando a descentralização dos DSEIs e a necessidade de manutenção da autonomia ou reformulação da política.","palavras_chave":["SESAI","Política Nacional de Saúde Indígena","DSEIs","revisão"]},{"tipo":"Recomendação","descricao":"Recomenda-se que a SESAI elabore plano de ação para reavaliar o processo de aquisições e gestão dos bens/serviços, definindo necessidade de encaminhamento prévio de estudos técnicos detalhados e estimativas de preços ao Secretário Especial de Saúde Indígena para aprovação.","palavras_chave":["SESAI","plano de ação","aquisições","estudos técnicos","estimativas de preços"]},{"tipo":"Recomendação","descricao":"Recomenda-se à Sesai estabelecer um conjunto de indicadores com denominação e cálculo estáveis ao longo do tempo, permitindo séries históricas.","palavras_chave":["Sesai","indicadores","séries históricas"]},{"tipo":"Recomendação","descricao":"Recomenda-se à Sesai reavaliar o uso do SIASI como fonte de dados, apresentando plano de ação para melhorias ou identificando fontes alternativas confiáveis.","palavras_chave":["Sesai","SIASI","fontes de dados"]},{"tipo":"Recomendação","descricao":"Recomenda-se que o DSEI-Y atue junto à SESAI para acelerar os processos licitatórios relativos à contratação de transporte aéreo, cumprindo acordos firmados com o Ministério Público Federal.","palavras_chave":["DSEI-Y","SESAI","licitações","transporte aéreo"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao DSEI-Y instaurar procedimentos administrativos para apurar irregularidades e aplicar sanções à empresa TARP Taxi Aéreo Ltda pelo descumprimento contratual, bem como apurar a responsabilidade de servidores.","palavras_chave":["DSEI-Y","TARP Taxi Aéreo Ltda","sanções","responsabilidade"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao DSEI-Y instaurar procedimentos administrativos para apurar as irregularidades na contratação da Icaraí Turismo Táxi Aéreo Ltda, especialmente quanto à habilitação e atraso na apresentação da garantia contratual.","palavras_chave":["DSEI-Y","Icaraí Turismo Táxi Aéreo Ltda","habilitação","garantia contratual"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao DSEI-Y implementar rotinas para acompanhamento dos prazos de vigência dos contratos, a fim de evitar a realização de serviços de transporte aéreo sem cobertura contratual.","palavras_chave":["DSEI-Y","prazos","contratos","transporte aéreo"]},{"tipo":"Recomendação","descricao":"Recomenda-se que o DSEI/Guatoc desenvolva mecanismos de controle e treinamento dos responsáveis pelo acompanhamento e pagamento dos contratos, visando assegurar a prestação adequada dos serviços e a correta formalização dos pagamentos.","palavras_chave":["DSEI/Guatoc","controle","treinamento","pagamentos","contratos"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao DSEI/Guatoc a abertura de procedimento administrativo para apuração do prejuízo e ressarcimento dos valores pagos pela utilização de aeronaves monomotor sem a capacidade mínima exigida.","palavras_chave":["DSEI/Guatoc","ressarcimento","aeronaves monomotor","prejuízo"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao DSEI/Guatoc a apuração de responsabilidade dos servidores que não observaram os descumprimentos contratuais, resultando em pagamentos inadequados e prejuízo ao erário.","palavras_chave":["DSEI/Guatoc","responsabilidade","servidores","pagamentos","prejuízo"]},{"tipo":"Recomendação","descricao":"Recomenda-se ao DSEI/Guatoc a abertura de procedimento administrativo para ressarcimento do montante de R$ 511.974,82 referente aos achados de uso irregular de polos base, pagamento por voos não realizados e uso indevido de aeronaves tipo Caravan.","palavras_chave":["DSEI/Guatoc","ressarcimento","R$ 511.974,82","polos base","aeronaves"]}]}</script>
+
+<div class="container">
+  <header>
+    <h1 id="titulo">Painel de Auditoria</h1>
+    <p id="resumo"></p>
+  </header>
+
+  <div class="card filters">
+    <div class="filter-group"><label for="f-texto">Filtrar por texto</label><input id="f-texto" type="text" placeholder="Digite para buscar..."></div>
+    <div class="filter-group"><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+    <div class="filter-group"><label for="f-uf">UF (CGU)</label><select id="f-uf"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label for="f-orgao">Órgão</label><select id="f-orgao"><option value="">Todos</option><option>CGU</option><option>TCU</option></select></div>
+    <div><button id="btn-clear-filters" class="btn-clear">Limpar Filtros</button></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card"><h3>CGU vs TCU por Ano</h3><canvas id="bar" width="520" height="300"></canvas><div class="legend" id="bar-legend"></div></div>
+    <div class="card chart-card"><h3>Distribuição por UF (CGU)</h3><canvas id="pie" width="320" height="320"></canvas><div class="legend" id="pie-legend"></div></div>
+  </div>
+
+  <div class="card section">
+    <h2>Relatórios da CGU <span class="kpi">(<span id="cgu-vis">0</span>/<span id="cgu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-cgu"><thead><tr><th>Título</th><th>Data</th><th>UF</th><th>Unidade Auditada</th><th>Tipo de Serviço</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="6">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="card section">
+    <h2>Acórdãos do TCU <span class="kpi">(<span id="tcu-vis">0</span>/<span id="tcu-tot">0</span>)</span></h2>
+    <div class="table-wrap"><table id="tbl-tcu"><thead><tr><th>Ano</th><th>Assunto</th><th>Link</th></tr></thead><tbody><tr class="loading"><td colspan="3">Carregando dados...</td></tr></tbody></table></div>
+  </div>
+  
+  <!-- <<< NOVO HTML PARA A TABELA DE ACHADOS >>> -->
+  <div class="card section">
+    <h2>CGU/TCU - Achados e Recomendações</h2>
+    <div class="table-wrap">
+      <table id="tbl-achados">
+        <thead>
+          <tr>
+            <th style="width:15%;">Tipo</th>
+            <th>Descrição</th>
+            <th style="width:25%;">Palavras-Chave</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="loading"><td colspan="3">Carregando dados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function getYearFromDateStr(s) {
+    var match = String(s || '').match(/\b(\d{4})\b/);
+    return match ? match[1] : '';
+  }
+  function textOrEmpty(v) { return v === 0 ? '0' : (v == null ? '' : String(v)); }
+  function escapeRegExp(s) { return String(s).replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&'); }
+
+  var seed = { resumo: '', cgu_tabela: [], tcu_tabela: [], achados_tabela: [] };
+  try {
+    seed = JSON.parse(document.getElementById('seed').textContent || '{}');
+  } catch (e) {
+    console.error("Erro ao ler dados do painel:", e);
+  }
+
+  var elements = {
+      titulo: document.getElementById('titulo'),
+      resumo: document.getElementById('resumo'),
+      fTexto: document.getElementById('f-texto'),
+      fAno: document.getElementById('f-ano'),
+      fUf: document.getElementById('f-uf'),
+      fOrgao: document.getElementById('f-orgao'),
+      btnClear: document.getElementById('btn-clear-filters'),
+      cguVis: document.getElementById('cgu-vis'),
+      cguTot: document.getElementById('cgu-tot'),
+      tcuVis: document.getElementById('tcu-vis'),
+      tcuTot: document.getElementById('tcu-tot'),
+      cguBody: document.querySelector('#tbl-cgu tbody'),
+      tcuBody: document.querySelector('#tbl-tcu tbody'),
+      achadosBody: document.querySelector('#tbl-achados tbody'), // <<< ADICIONADO: referência à nova tabela
+      barCanvas: document.getElementById('bar'),
+      pieCanvas: document.getElementById('pie'),
+      barLegend: document.getElementById('bar-legend'),
+      pieLegend: document.getElementById('pie-legend'),
+  };
+
+  var themeMatch = (seed.resumo || '').match(/"([^"]+)"/);
+  var SEARCH_PHRASE = themeMatch ? themeMatch[1].trim() : '';
+  var STOP_WORDS = new Set(['de','da','do','das','dos','e','a','o','as','os','para','por','em','no','na','nos','nas','com','sem','ao','à','às','um','uma','que']);
+  var searchTerms = (SEARCH_PHRASE ? SEARCH_PHRASE.split(/\s+/) : []).filter(function(w) { return w && w.length >= 2 && !STOP_WORDS.has(norm(w)); });
+  var DIACRITICS = {'a':'[aàáâãä]','e':'[eèéêë]','i':'[iìíîï]','o':'[oòóôõö]','u':'[uùúûü]','c':'[cç]','n':'[nñ]'};
+  var diacriticPart = function(s) { return s.split('').map(function(ch) { return DIACRITICS[ch.toLowerCase()] || (ch.match(/\s/) ? '\\s+' : escapeRegExp(ch)); }).join(''); };
+  var searchParts = [SEARCH_PHRASE].concat(searchTerms).filter(Boolean).map(diacriticPart);
+  var SEARCH_RE = searchParts.length ? new RegExp('(?:^|\\b)(' + searchParts.join('|') + ')(?=\\b|$)', 'gi') : null;
+  
+  function highlightBold(txt) {
+      var s = textOrEmpty(txt);
+      return SEARCH_RE ? s.replace(SEARCH_RE, function(m) { return '<b class="hl">' + m + '</b>'; }) : s;
+  };
+
+  document.title = 'Painel de ' + (SEARCH_PHRASE || 'Auditoria');
+  elements.titulo.textContent = document.title;
+  elements.resumo.textContent = textOrEmpty(seed.resumo);
+
+  var CGU = (seed.cgu_tabela || []).map(function(x) { return Object.assign({_src:'CGU'}, x); });
+  var TCU = (seed.tcu_tabela || []).map(function(x) { return Object.assign({_src:'TCU'}, x); }).sort(function(a, b) { return (b.Ano || 0) - (a.Ano || 0); });
+  
+  elements.cguTot.textContent = CGU.length;
+  elements.tcuTot.textContent = TCU.length;
+  
+  var yearSet = {};
+  CGU.forEach(function(r) { var y = getYearFromDateStr(r.Data); if(y) yearSet[y] = true; });
+  TCU.forEach(function(r) { if(r.Ano) yearSet[r.Ano] = true; });
+  Object.keys(yearSet).sort(function(a,b) { return b-a; }).forEach(function(y) { elements.fAno.add(new Option(y, y)); });
+  
+  var ufSet = {};
+  CGU.forEach(function(r) { if(r.UF && r.UF !== 'N/A') ufSet[r.UF] = true; });
+  Object.keys(ufSet).sort().forEach(function(u) { elements.fUf.add(new Option(u, u)); });
+
+  function renderTables(rowsCGU, rowsTCU) {
+    function renderBody(tbody, rows, rowHTMLGenerator, colSpan) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+            tbody.innerHTML = '<tr class="no-results"><td colspan="' + colSpan + '">Nenhum registro para exibir.</td></tr>';
+        } else {
+            rows.forEach(function(row) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = rowHTMLGenerator(row);
+                tbody.appendChild(tr);
+            });
+        }
+    };
+    renderBody(elements.cguBody, rowsCGU, function(r) {
+        return '<td>' + highlightBold(r['Título']) + '</td><td>' + r.Data + '</td><td>' + r.UF + '</td><td>' + r['Unidade Auditada'] + '</td><td>' + r['Tipo de Serviço'] + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 6);
+    renderBody(elements.tcuBody, rowsTCU, function(r) {
+        return '<td>' + r.Ano + '</td><td>' + highlightBold(r.Assunto) + '</td><td>' + (r.Link ? '<a class="link" href="' + r.Link + '" target="_blank" rel="noopener">Abrir</a>' : '') + '</td>';
+    }, 3);
+    
+    // <<< NOVO: RENDERIZAR A TABELA DE ACHADOS >>>
+    var achadosRows = seed.achados_tabela || [];
+    renderBody(elements.achadosBody, achadosRows, function(r) {
+        var palavrasChaveHtml = (r.palavras_chave || []).map(function(k) {
+            return '<span class="keyword-tag">' + k + '</span>';
+        }).join(' ');
+        
+        var tipoClass = '';
+        if (r.tipo === 'Achado') tipoClass = 'color: #c91a34;';
+        if (r.tipo === 'Fragilidade') tipoClass = 'color: #d97706;';
+        if (r.tipo === 'Recomendação') tipoClass = 'color: #059669;';
+
+        return '<td style="' + tipoClass + '"><b>' + r.tipo + '</b></td><td>' + highlightBold(r.descricao) + '</td><td>' + palavrasChaveHtml + '</td>';
+    }, 3);
+  }
+  
+  function drawBar(rowsCGU,rowsTCU){var ctx=elements.barCanvas.getContext('2d');ctx.clearRect(0,0,elements.barCanvas.width,elements.barCanvas.height);elements.barLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var y=getYearFromDateStr(r.Data);if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].CGU++;});rowsTCU.forEach(function(r){var y=r.Ano;if(!y)return;if(!agg[y])agg[y]={CGU:0,TCU:0};agg[y].TCU++;});var labels=Object.keys(agg).sort(function(a,b){return a-b;});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.barCanvas.width/2,elements.barCanvas.height/2);return;}var pad={t:20,r:16,b:40,l:28},w=elements.barCanvas.width-pad.l-pad.r,h=elements.barCanvas.height-pad.t-pad.b,max=1;labels.forEach(function(y){max=Math.max(max,agg[y].CGU,agg[y].TCU);});ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+h);ctx.lineTo(pad.l+w,pad.t+h);ctx.stroke();ctx.fillStyle='#555';ctx.textAlign='right';for(var i=0;i<=max;i++){var yy=pad.t+h-(i/max)*h;ctx.fillText(String(i),pad.l-4,yy+4);if(i>0){ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(pad.l+w,yy);ctx.stroke();}}var groupW=w/labels.length,barW=Math.max(8,groupW*0.35);var cguColor=getComputedStyle(document.documentElement).getPropertyValue('--cgu').trim()||'#0a9396';var tcuColor=getComputedStyle(document.documentElement).getPropertyValue('--tcu').trim()||'#94d2bd';labels.forEach(function(y,i){var x=pad.l+i*groupW+groupW/2;var hCGU=(agg[y].CGU/max)*h,hTCU=(agg[y].TCU/max)*h;ctx.fillStyle=cguColor;ctx.fillRect(x-barW-1,pad.t+h-hCGU,barW,hCGU);ctx.fillStyle=tcuColor;ctx.fillRect(x+1,pad.t+h-hTCU,barW,hTCU);ctx.fillStyle='#333';ctx.textAlign='center';ctx.fillText(y,x,pad.t+h+18);});elements.barLegend.innerHTML='<div><span class="legend-box" style="background:'+cguColor+'"></span>CGU</div><div><span class="legend-box" style="background:'+tcuColor+'"></span>TCU</div>';}
+  function drawPie(rowsCGU){var ctx=elements.pieCanvas.getContext('2d');ctx.clearRect(0,0,elements.pieCanvas.width,elements.pieCanvas.height);elements.pieLegend.innerHTML='';var agg={};rowsCGU.forEach(function(r){var u=r.UF||'N/A';agg[u]=(agg[u]||0)+1;});var labels=Object.keys(agg).filter(function(k){return agg[k]>0;}).sort(function(a,b){return agg[b]-agg[a];});if(!labels.length){ctx.fillStyle='#889';ctx.textAlign='center';ctx.fillText('Nenhum dado para exibir',elements.pieCanvas.width/2,elements.pieCanvas.height/2);return;}var colors=['#0077b6','#00b4d8','#90e0ef','#caf0f8','#0096c7','#2a9d8f','#43aa8b','#007f5f','#80b918','#c77dff','#f77f00','#ffadad'];var total=labels.reduce(function(s,k){return s+agg[k];},0);var start=-Math.PI/2,cx=elements.pieCanvas.width/2,cy=elements.pieCanvas.height/2,r=Math.min(cx,cy)-14;labels.forEach(function(label,i){var val=agg[label],ang=(val/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();var pct=(val/total*100).toFixed(1)+'%';var d=document.createElement('div');d.innerHTML='<span class="legend-box" style="background:'+colors[i%colors.length]+'"></span>'+label+' ('+pct+')';elements.pieLegend.appendChild(d);start+=ang;});}
+
+  function applyFilters() {
+    var txt = norm(elements.fTexto.value);
+    var ano = elements.fAno.value;
+    var uf = elements.fUf.value;
+    var org = elements.fOrgao.value;
+
+    var filteredCGU = CGU.filter(function(r) {
+        if (org && org !== 'CGU') return false;
+        if (uf && r.UF !== uf) return false;
+        if (ano && getYearFromDateStr(r.Data) !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+    var filteredTCU = TCU.filter(function(r) {
+        if (org && org !== 'TCU') return false;
+        if (ano && r.Ano !== ano) return false;
+        if (txt && norm(Object.values(r).join(' ')).indexOf(txt) === -1) return false;
+        return true;
+    });
+
+    elements.cguVis.textContent = filteredCGU.length;
+    elements.tcuVis.textContent = filteredTCU.length;
+    renderTables(filteredCGU, filteredTCU); // A função renderTables já inclui a renderização da tabela de achados
+    drawBar(filteredCGU, filteredTCU);
+    drawPie(filteredCGU);
+  }
+
+  [elements.fTexto, elements.fAno, elements.fUf, elements.fOrgao].forEach(function(el) {
+    el.addEventListener('input', applyFilters);
+  });
+
+  elements.btnClear.addEventListener('click', function() {
+    elements.fTexto.value = '';
+    elements.fAno.value = '';
+    elements.fUf.value = '';
+    elements.fOrgao.value = '';
+    applyFilters();
+  });
+
+  applyFilters();
+});
+</script>
+</body>
+</html>
